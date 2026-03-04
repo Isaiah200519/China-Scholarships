@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Dashboard - China Scholarships Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/modern-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo-small">
+                <i class="fas fa-graduation-cap"></i>
+            </a>
+            <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#profile" class="nav-item" data-section="profile">
+                <i class="fas fa-user"></i>
+                <span>My Profile</span>
+            </a>
+            <a href="#status" class="nav-item" data-section="status">
+                <i class="fas fa-check-circle"></i>
+                <span>Application Status</span>
+            </a>
+            <a href="#students" class="nav-item" data-section="students">
+                <i class="fas fa-users-class"></i>
+                <span>My Students</span>
+            </a>
+            <a href="#messages" class="nav-item" data-section="messages">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+                <span class="badge-messages"
+                    style="display:none;background:#e74c3c;color:#fff;border-radius:50%;padding:2px 8px;font-size:0.85em;vertical-align:top;margin-left:6px;"></span>
+            </a>
+            <a href="#settings" class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button onclick="logoutAgent()" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="dashboard-container">
+        <!-- ===== MESSAGES SECTION ===== -->
+        <section id="messages-section" class="content-section" style="display:none;">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Messages</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="userName">Agent</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAgent()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2 style="margin-bottom:18px;">Contact Admin</h2>
+                <form id="contactAdminForm" style="margin-bottom:24px;">
+                    <div class="form-group">
+                        <label for="adminMessageSubject">Subject</label>
+                        <input type="text" id="adminMessageSubject" class="form-control" required maxlength="100"
+                            style="width:100%;margin-bottom:10px;" />
+                    </div>
+                    <div class="form-group">
+                        <label for="adminMessageBody">Message</label>
+                        <textarea id="adminMessageBody" class="form-control" rows="4" required
+                            style="width:100%;margin-bottom:10px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%;">Send Message</button>
+                    <div id="contactAdminSuccess" style="color:green;display:none;margin-top:10px;">Message sent!</div>
+                    <div id="contactAdminError" style="color:red;display:none;margin-top:10px;"></div>
+                </form>
+                <div id="agentMessagesList" style="padding:20px;"></div>
+            </div>
+        </section>
+
+        <!-- ===== DASHBOARD SECTION ===== -->
+        <section id="dashboard-section" class="content-section active">
+            <!-- Section Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Dashboard</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="notification-bell" title="Notifications" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="globalNotificationBadge">2</span>
+                    </div>
+                    <div class="announcement-bell" title="Announcements">
+                        <i class="fas fa-bullhorn"></i>
+                        <span class="announcement-badge"></span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="userName">Agent</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAgent()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-card">
+                <h2>Welcome, <span id="welcomeName">Agent</span>! 👋</h2>
+                <p id="statusMessage" style="color: var(--gray); margin-top: 10px;"></p>
+            </div>
+
+            <!-- ===== ANNOUNCEMENTS CARD ===== -->
+            <div class="card" id="announcementsCard" style="margin-top:24px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <h2 style="margin:0;font-size:1.2em;"><i class="fas fa-bullhorn"></i> Announcements</h2>
+                    <span class="announcement-badge"></span>
+                </div>
+                <div id="agentAnnouncementsList" style="margin-top:16px;"></div>
+            </div>
+
+            <div class="alert alert-info" id="statusAlert" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span id="statusAlertText"></span>
+            </div>
+
+            <!-- ===== AGENT INFORMATION CARD ===== -->
+            <div class="user-info-card"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 50px; height: 50px; background-color: rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;"
+                            id="agentInfoAvatar">A</div>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.8;">Full Name</div>
+                            <div style="font-size: 16px; font-weight: 600;" id="agentInfoFullName">Agent Name</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">Email Address</div>
+                        <div style="font-size: 14px; font-weight: 500; word-break: break-all;" id="agentInfoEmail">
+                            agent@example.com</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">Phone Number</div>
+                        <div style="font-size: 14px; font-weight: 500;" id="agentInfoPhone">Not provided</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">University/Organization</div>
+                        <div style="font-size: 14px; font-weight: 500;" id="agentInfoUniversity">Not provided</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- ===== ACTIVE APPLICATIONS SECTION ===== -->
+            <div class="card" style="margin-top: 24px;">
+                <h2 style="margin-bottom: 16px;">Active Applications</h2>
+                <div id="activeApplicationsList" class="active-applications-list"></div>
+            </div>
+            </div>
+            <div>
+                <div style="font-size: 12px; opacity: 0.8;">Application Status</div>
+                <div style="font-size: 14px; font-weight: 500;" id="agentInfoStatus">Pending</div>
+            </div>
+            <div>
+                <div style="font-size: 12px; opacity: 0.8;">Applied On</div>
+                <div style="font-size: 14px; font-weight: 500;" id="agentInfoAppliedDate">-</div>
+            </div>
+            </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: rgba(51, 102, 255, 0.1); color: var(--primary);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="totalStudents">0</div>
+                        <div class="stat-label">Students Placed</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: rgba(0, 184, 148, 0.1); color: var(--secondary);">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="activeScholarships">0</div>
+                        <div class="stat-label">Active Scholarships</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: rgba(255, 165, 0, 0.1); color: #ffa500;">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="pendingApplications">0</div>
+                        <div class="stat-label">Pending Applications</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545;">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number" id="memberSince">N/A</div>
+                        <div class="stat-label">Member Since</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <a href="#profile" class="action-btn" onclick="switchSection('profile')">
+                            <i class="fas fa-edit"></i>
+                            <span>Update Profile</span>
+                        </a>
+                        <a href="#students" class="action-btn" onclick="switchSection('students')">
+                            <i class="fas fa-users"></i>
+                            <span>Manage Students</span>
+                        </a>
+                        <a href="scholarships.html" class="action-btn">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>View Scholarships</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PROFILE SECTION ===== -->
+        <section id="profile-section" class="content-section">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>My Profile</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="userName">Agent</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAgent()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <form id="profileForm" class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" disabled>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" id="country" name="country" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="university">University/Organization</label>
+                            <input type="text" id="university" name="university" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="experience">Years of Experience</label>
+                            <input type="number" id="experience" name="experience" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio">About You</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="Tell us about your experience"></textarea>
+                    </div>
+
+                    <div class="alert alert-error" id="profileError" style="display: none;"></div>
+                    <div class="alert alert-success" id="profileSuccess" style="display: none;"></div>
+
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ===== STATUS SECTION ===== -->
+        <section id="status-section" class="content-section">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Application Status</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="userName">Agent</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAgent()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div id="statusContent" class="status-content">
+                    <p style="color: var(--gray); text-align: center; padding: 40px;">Loading...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== STUDENTS SECTION ===== -->
+        <section id="students-section" class="content-section">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>My Students</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="userName">Agent</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAgent()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div id="studentsList" class="students-list">
+                    <p style="color: var(--gray); text-align: center; padding: 40px;">No students yet</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SETTINGS SECTION ===== -->
+        <section id="settings-section" class="content-section">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Account Settings</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="userName">Agent</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAgent()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="settings-group">
+                    <h3>Change Password</h3>
+                    <form id="passwordForm" class="settings-form">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" name="newPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmNewPassword">Confirm New Password</label>
+                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js" defer></script>
+    <script src="js/firebase-auth.js" defer></script>
+    <script src="js/notifications.js" defer></script>
+    <script src="js/agent-dashboard.js" defer></script>
+</body>
+
+</html>

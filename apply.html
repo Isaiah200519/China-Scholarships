@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Now | China Scholarships Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== APPLICATION FORM STYLES ===== */
+        .apply-header {
+            background: linear-gradient(135deg, #f5f7ff 0%, #e3e9ff 100%);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        /* Progress Section - ABOVE FORM */
+        .progress-section {
+            max-width: 1000px;
+            margin: -30px auto 0;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .progress-card {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-info {
+            margin-bottom: 25px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .step-counter {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-percentage {
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background: #f0f3ff;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .step-indicators {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .step-indicator {
+            text-align: center;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f3ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 600;
+            color: var(--gray);
+            border: 2px solid #f0f3ff;
+            transition: all 0.3s ease;
+        }
+
+        .step-indicator.active .step-circle {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .step-indicator.completed .step-circle {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .step-indicator.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Form Container - BELOW PROGRESS */
+        .form-container {
+            -width: 1000px;
+            margin: 30px auto 60px;
+            padding: 0 20px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            margin-bottom: 25px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section h3 i {
+            font-size: 1.2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 6px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(51, 102, 255, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload {
+            border: 2px dashed #e1e5ee;
+            border-radius: 6px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: #f8f9ff;
+        }
+
+        .file-upload i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .uploaded-files {
+            margin-top: 15px;
+        }
+
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9ff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .uploaded-file i {
+            color: var(--primary);
+            margin-right: 10px;
+        }
+
+        .remove-file {
+            color: #e74c3c;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+        }
+
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f1f3f9;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        .terms-link {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f3f9;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .summary-value {
+            color: var(--gray);
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .success-message i {
+            font-size: 4rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .progress-card {
+                padding: 20px;
+            }
+
+            .form-card {
+                padding: 25px;
+            }
+
+            .step-indicators {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .form-navigation button {
+                width: 100%;
+            }
+
+            .progress-section,
+            .form-container {
+                padding: 0 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .step-indicators {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .form-card {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER & NAVIGATION ===== -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>ChinaScholarships</h1>
+                </a>
+
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="scholarships.html"><i class="fas fa-university"></i><span>Scholarships</span></a></li>
+                    <li><a href="apply.html" class="active"><i class="fas fa-edit"></i><span>Apply Now</span></a></li>
+                    <li><a href="agent-application.html"><i class="fas fa-user-tie"></i><span>Become an Agent</span></a>
+                    </li>
+                    <li><a href="agents.html"><i class="fas fa-users"></i><span>Our Agents</span></a></li>
+                    <li><a href="about.html"><i class="fas fa-info-circle"></i><span>About</span></a></li>
+                    <li><a href="contact.html"><i class="fas fa-envelope"></i><span>Contact</span></a></li>
+                    <li><a href="login.html"><i class="fas fa-sign-in-alt"></i><span>Login</span></a></li>
+                    <li><a href="register.html"><i class="fas fa-user-plus"></i><span>Register</span></a></li>
+                </ul>
+
+                <div class="mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== APPLICATION HEADER ===== -->
+    <section class="apply-header">
+        <div class="container">
+            <h1>Scholarship Application</h1>
+            <p>Complete your application in 3 simple steps</p>
+        </div>
+    </section>
+
+    <!-- ===== PROGRESS SECTION (ABOVE FORM) ===== -->
+    <div class="progress-section">
+        <div class="progress-card">
+            <div class="progress-info">
+                <div class="progress-text">
+                    <span class="step-counter">Step <span id="currentStep">1</span> of 1</span>
+                    <span class="progress-percentage" id="progressPercentage">0% Complete</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="step-indicators">
+                <div class="step-indicator active" id="stepIndicator1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Personal Info</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== APPLICATION FORM (BELOW PROGRESS) ===== -->
+    <div class="form-container">
+        <div class="form-card">
+            <form id="applicationForm">
+                <!-- Step 1: Personal Information -->
+                <div class="form-step active" id="formStep1">
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Personal Information</h3>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name <span class="required">*</span></label>
+                                <input type="text" name="fullName" required placeholder="Enter your full name">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email Address <span class="required">*</span></label>
+                                <input type="email" name="email" required placeholder="Enter your email">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Create Password <span class="required">*</span></label>
+                                <input type="password" name="password" required minlength="6"
+                                    placeholder="Choose a secure password">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password <span class="required">*</span></label>
+                                <input type="password" name="confirmPassword" required minlength="6"
+                                    placeholder="Confirm password">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>WhatsApp Number <span class="required">*</span></label>
+                                <input type="tel" name="whatsapp" required placeholder="Enter your WhatsApp number">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date of Birth <span class="required">*</span></label>
+                                <input type="date" name="dob" required title="Date of Birth">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Nationality <span class="required">*</span></label>
+                                <input type="text" id="nationality" name="nationality" required
+                                    placeholder="Enter your nationality" autocomplete="country" maxlength="100">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Family Background <span class="required">*</span></label>
+                                <textarea name="familyBackground" required
+                                    placeholder="Tell us about your family (occupation, siblings, etc.)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-navigation">
+                        <div></div> <!-- Empty div for spacing -->
+                        <button type="submit" class="btn-primary">Submit Application <i
+                                class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="terms" required>
+                                <label for="terms">I agree to the <a href="#" class="terms-link">Terms &
+                                        Conditions</a> and <a href="#" class="terms-link">Privacy Policy</a> <span
+                                        class="required">*</span></label>
+                            </div>
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="information" required>
+                                <label for="information">I confirm that all information provided is accurate and
+                                    complete <span class="required">*</span></label>
+                            </div>
+
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="updates">
+                                <label for="updates">I wish to receive updates about scholarships and
+                                    opportunities</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Success Message (Hidden by default) -->
+            <div id="successMessage" style="display: none; text-align: center; padding: 60px 20px;">
+                <i class="fas fa-check-circle"
+                    style="font-size: 4rem; color: var(--secondary); margin-bottom: 20px;"></i>
+                <h2>Application Submitted Successfully!</h2>
+                <p>Your scholarship application has been received. We will review it and contact you within 3-5 business
+                    days.</p>
+                <p style="margin-top: 20px;">
+                    <strong>Application ID:</strong> <span id="applicationId"
+                        style="color: var(--primary);">CSH-2024-00123</span>
+                </p>
+                <div style="margin-top: 30px;">
+                    <button type="button" class="btn-primary" onclick="resetApplicationForm()">Submit Another
+                        Application</button>
+                    <a href="index.html" class="btn-secondary" style="margin-left: 15px;">Return to Home</a>
+                    <a href="scholarships.html" class="btn-secondary" style="margin-left: 15px;">Browse More
+                        Scholarships</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-graduation-cap"></i> ChinaScholarships</h3>
+                    <p>Your trusted platform for scholarships to study in China.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="scholarships.html">Scholarships</a></li>
+                        <li><a href="apply.html">Apply Now</a></li>
+                        <li><a href="agent-application.html">Become an Agent</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-envelope"></i> savieisaiah54@gmail.com / chinaScholarshipsdirect@gmail.com</p>
+                    <p><i class="fas fa-phone"></i> +86 15107332039</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Zhuzhou, Hunan, China</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2023 China Scholarships Hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/firebase-auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/apply.js"></script>
+    <script>
+        // Small inline initializer: update footer year only. Core form logic lives in js/apply.js
+        document.addEventListener('DOMContentLoaded', function () {
+            const yearElement = document.querySelector('.footer-bottom p');
+            if (yearElement) {
+                const currentYear = new Date().getFullYear();
+                yearElement.innerHTML = yearElement.innerHTML.replace('2023', currentYear);
+            }
+        });
+    </script>
+</body>
+
+</html>

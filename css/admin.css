@@ -1,0 +1,1079 @@
+/* ===== ADMIN DASHBOARD SPECIFIC STYLES ===== */
+
+/* ===== SECTION HEADER ===== */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.section-header h2 {
+    margin: 0;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 15px;
+    border: 1px solid var(--light-gray);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(51, 102, 255, 0.1);
+}
+
+/* ===== TABLE STYLES ===== */
+
+.table-container {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table thead {
+    background-color: #f5f7fa;
+    border-bottom: 2px solid var(--light-gray);
+}
+
+.admin-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.admin-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--light-gray);
+    color: var(--dark);
+}
+
+.admin-table tbody tr:hover {
+    background-color: #fafbfc;
+}
+
+/* ===== ROLE BADGE ===== */
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.role-student {
+    background-color: rgba(51, 102, 255, 0.1);
+    color: var(--primary);
+}
+
+.role-agent {
+    background-color: rgba(0, 184, 148, 0.1);
+    color: var(--secondary);
+}
+
+.role-admin {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* ===== AGENT APPLICATION CARDS ===== */
+
+.agents-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.agent-application-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.agent-application-card:hover {
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary);
+}
+
+.agent-header {
+    background: linear-gradient(135deg, rgba(51, 102, 255, 0.05), rgba(0, 184, 148, 0.05));
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.agent-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--dark);
+}
+
+.agent-details {
+    padding: 20px;
+}
+
+.agent-details p {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.5;
+}
+
+.agent-details strong {
+    color: var(--dark);
+}
+
+.agent-actions {
+    padding: 20px;
+    border-top: 1px solid var(--light-gray);
+    display: flex;
+    gap: 10px;
+}
+
+.btn-approve,
+.btn-reject,
+.btn-danger,
+.btn-small {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-approve {
+    background-color: rgba(0, 184, 148, 0.1);
+    color: var(--secondary);
+}
+
+.btn-approve:hover {
+    background-color: rgba(0, 184, 148, 0.2);
+}
+
+.btn-reject {
+    background-color: rgba(255, 165, 0, 0.1);
+    color: #ffa500;
+}
+
+.btn-reject:hover {
+    background-color: rgba(255, 165, 0, 0.2);
+}
+
+.btn-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    background-color: #f5f7fa;
+    border: 1px solid var(--light-gray);
+    color: var(--dark);
+}
+
+.btn-small:hover {
+    background-color: var(--light);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ===== STUDENTS LIST ===== */
+
+.students-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.student-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--light-gray);
+    transition: var(--transition);
+}
+
+.student-card:hover {
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
+
+.student-name {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+.student-info {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.6;
+}
+
+/* ===== STATUS INFO ===== */
+
+.status-info {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.status-info.verified {
+    background-color: rgba(0, 184, 148, 0.1);
+    border: 1px solid rgba(0, 184, 148, 0.3);
+}
+
+.status-info.pending {
+    background-color: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.status-info.rejected {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.status-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.status-info.verified .status-icon {
+    background-color: rgba(0, 184, 148, 0.2);
+    color: var(--secondary);
+}
+
+.status-info.pending .status-icon {
+    background-color: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+}
+
+.status-info.rejected .status-icon {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.status-text h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+
+.status-text p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.5;
+}
+
+.status-info.verified .status-text h3 {
+    color: var(--secondary);
+}
+
+.status-info.pending .status-text h3 {
+    color: #ffa500;
+}
+
+.status-info.rejected .status-text h3 {
+    color: #dc3545;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .agents-list,
+    .students-list {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-table {
+        font-size: 12px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 10px;
+    }
+
+    .agent-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .agent-actions {
+        flex-direction: column;
+    }
+
+    .btn-approve,
+    .btn-reject,
+    .btn-danger {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-table {
+        font-size: 11px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 8px 5px;
+    }
+
+    .status-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .status-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+}
+
+/* ===== PREMIUM ADMIN DASHBOARD ENHANCEMENTS ===== */
+
+/* Top Bar Enhancement */
+.top-bar {
+    background: linear-gradient(to right, #ffffff 0%, #f8f9ff 100%);
+    border-bottom: 2px solid rgba(51, 102, 255, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+}
+
+/* Top Bar Left */
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.top-bar-left h1 {
+    margin: 0;
+    color: var(--dark);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* Top Bar Right - Session Header */
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(51, 102, 255, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%);
+    border-radius: 8px;
+    border: 1px solid rgba(51, 102, 255, 0.1);
+}
+
+/* Notification Bell - Session Header Style */
+.top-bar-right .notification-bell {
+    position: relative;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--primary);
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.top-bar-right .notification-bell:hover {
+    background-color: rgba(51, 102, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.top-bar-right .notification-badge {
+    position: absolute;
+    top: -2px;
+    right: 2px;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* User Profile - Session Header */
+.top-bar-right .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border-left: 2px solid rgba(51, 102, 255, 0.2);
+    border-right: 2px solid rgba(51, 102, 255, 0.2);
+}
+
+.top-bar-right .user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(51, 102, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.top-bar-right .user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(51, 102, 255, 0.3);
+}
+
+.top-bar-right .user-dropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.top-bar-right .user-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.top-bar-right .user-dropdown a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #dc3545;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.top-bar-right .user-dropdown a:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #c82333;
+}
+
+.top-bar-right .user-dropdown a i {
+    font-size: 11px;
+}
+
+/* Stats Grid Enhancement */
+.stat-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border: 1px solid rgba(51, 102, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(51, 102, 255, 0.15);
+    border-color: rgba(51, 102, 255, 0.3);
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+.stat-number {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Card Enhancement */
+.card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(51, 102, 255, 0.1);
+}
+
+.card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Agent Approval Card Premium */
+background: linear-gradient(to bottom right, #ffffff, #f8f9ff);
+border: 2px solid rgba(51, 102, 255, 0.1);
+position: relative;
+overflow: hidden;
+transition: all 0.3s ease;
+}
+
+.agent-approval-card {
+    background: linear-gradient(to bottom right, #ffffff, #f8f9ff);
+    border: 2px solid rgba(51, 102, 255, 0.1);
+    position: relative;
+    overflow: visible;
+    transition: all 0.3s ease;
+    padding: 32px 28px;
+    margin-bottom: 32px;
+    min-width: 340px;
+    box-sizing: border-box;
+    word-break: break-word;
+}
+
+.agent-approval-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+.agent-approval-card:hover {
+    box-shadow: 0 10px 30px rgba(51, 102, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.agent-approval-card * {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.agent-approval-card h3,
+.agent-approval-card p,
+.agent-approval-card label,
+.agent-approval-card small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+}
+
+/* Button Styling Premium */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(51, 102, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(51, 102, 255, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.btn-small {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(51, 102, 255, 0.3);
+}
+
+/* Status Badge Premium */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-new {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+}
+
+.status-pending {
+    background: rgba(230, 126, 34, 0.1);
+    color: #e67e22;
+}
+
+.status-approved {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+}
+
+.status-read,
+.status-completed {
+    background: rgba(149, 165, 166, 0.1);
+    color: #7f8c8d;
+}
+
+/* Role Badge */
+.role-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.role-student {
+    background: rgba(0, 184, 148, 0.1);
+    color: #00b894;
+}
+
+.role-agent {
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary);
+}
+
+.role-admin {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+/* Alert Styling Premium */
+.alert {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.alert i {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #fee, #fdd);
+    border: 1px solid #fcc;
+    color: #c33;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #efe, #eef);
+    border: 1px solid #cfc;
+    color: #3c3;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #eef, #dde);
+    border: 1px solid #ccf;
+    color: #33c;
+}
+
+/* Notification Badge Animation */
+.notification-badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+    }
+}
+
+/* Loading Spinner */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== ADMIN MESSAGES CARD LAYOUT ===== */
+.messages-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Ensure messages panels and cards expand to fill the main content area */
+.messages-tab-panel,
+#messagesTabContent,
+.card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.messages-cards {
+    width: 100%;
+}
+
+.message-card {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}
+
+.message-card {
+    background: #fff;
+    border: 1px solid var(--light-gray);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    overflow: hidden;
+}
+
+.message-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.message-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.message-type {
+    font-weight: 700;
+    color: var(--dark);
+}
+
+.message-meta {
+    font-size: 0.9rem;
+    color: var(--gray);
+}
+
+.message-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.message-person {
+    flex: 1 1 200px;
+}
+
+.message-person .muted {
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+.message-subject {
+    font-size: 1rem;
+    color: var(--dark);
+}
+
+.message-content {
+    color: var(--dark);
+    line-height: 1.5;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.rating-display {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.message-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    gap: 12px;
+}
+
+.status-wrap {
+    flex: 0 0 auto;
+}
+
+.actions-wrap {
+    flex: 0 0 auto;
+}
+
+.muted {
+    color: var(--gray);
+}
+
+/* Avatar for message cards */
+.message-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    flex: 0 0 auto;
+}
+
+/* Message action buttons - professional, touch-friendly */
+.actions-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.message-card .btn,
+.message-card .btn-small,
+.message-card button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    min-height: 44px;
+    line-height: 1;
+    box-sizing: border-box;
+}
+
+.message-card .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(51, 102, 255, 0.12);
+}
+
+.message-card .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(51, 102, 255, 0.16);
+}
+
+.message-card .btn-secondary {
+    background: #f5f7fa;
+    color: var(--dark);
+    border: 1px solid var(--light-gray);
+}
+
+.message-card .btn-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.message-card .btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(220, 53, 69, 0.12);
+}
+
+.message-card .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(220, 53, 69, 0.16);
+}
+
+.message-card .btn-ghost {
+    background: transparent;
+    color: var(--dark);
+    border: 1px solid transparent;
+}
+
+/* Compact variant for tertiary actions */
+.message-card .btn-compact {
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    min-height: 36px;
+}
+
+/* Mobile: stack actions and make them full-width for easy tapping */
+@media (max-width: 480px) {
+    .actions-wrap {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .message-card .btn,
+    .message-card button {
+        width: 100%;
+    }
+}
+
+/* Dashboard container spacing relative to sidebar */
+.dashboard-container {
+    transition: margin-left 0.25s ease;
+    margin-left: 260px;
+    /* default open sidebar width */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Ensure active content fills available main area and scrolls internally */
+.content-section.active {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.content-section.active>* {
+    flex: 0 0 auto;
+}
+
+.dashboard-container.collapsed {
+    margin-left: 70px;
+    /* collapsed sidebar width */
+}
+
+/* Sidebar collapsed state (desktop) */
+.sidebar.collapsed {
+    width: 70px !important;
+}
+
+/* Ensure message cards are above background but not overlapping sidebar */
+.messages-cards {
+    position: relative;
+    z-index: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .message-row {
+        flex-direction: column;
+    }
+
+    .message-person {
+        flex: 1 1 100%;
+    }
+
+    .message-card {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .message-card {
+        padding: 10px;
+    }
+
+    .message-meta {
+        font-size: 0.85rem;
+    }
+
+    .message-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .actions-wrap button {
+        width: 100%;
+    }
+}

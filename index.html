@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>China Scholarships Hub | Study in China with Full Scholarships</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- ===== HEADER & NAVIGATION ===== -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>ChinaScholarships</h1>
+                </a>
+
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="scholarships.html"><i class="fas fa-university"></i><span>Scholarships</span></a></li>
+                    <li><a href="apply.html"><i class="fas fa-edit"></i><span>Apply Now</span></a></li>
+                    <li><a href="agent-application.html"><i class="fas fa-user-tie"></i><span>Become an Agent</span></a>
+                    </li>
+                    <li><a href="agents.html"><i class="fas fa-users"></i><span>Our Agents</span></a></li>
+                    <li><a href="about.html"><i class="fas fa-info-circle"></i><span>About</span></a></li>
+                    <li><a href="contact.html"><i class="fas fa-envelope"></i><span>Contact</span></a></li>
+                    <li><a href="login.html"><i class="fas fa-sign-in-alt"></i><span>Login</span></a></li>
+                    <li><a href="register.html"><i class="fas fa-user-plus"></i><span>Register</span></a></li>
+                </ul>
+
+                <div class="mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Study in <span class="highlight">China</span> with Full Scholarships</h1>
+                <p>Connect directly with top Chinese universities or through our verified agents.</p>
+                <div class="hero-buttons">
+                    <a href="scholarships.html" class="btn-primary">Browse Scholarships</a>
+                    <a href="apply.html" class="btn-secondary">Apply Now <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <h3>150+</h3>
+                        <p>Universities</p>
+                    </div>
+                    <div class="stat">
+                        <h3>2,500+</h3>
+                        <p>Scholarships</p>
+                    </div>
+                    <div class="stat">
+                        <h3>50+</h3>
+                        <p>Agents</p>
+                    </div>
+                    <div class="stat">
+                        <h3>5,000+</h3>
+                        <p>Students</p>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="carousel-container">
+                    <div class="carousel-slide active"
+                        data-text="Welcome to China Scholarships Hub. Pursue your dreams in the world's most vibrant educational landscape.">
+                        <img src="https://images.pexels.com/photos/256490/pexels-photo-256490.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                            alt="Students in China"
+                            onerror="this.src='https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'">
+                    </div>
+                    <div class="carousel-slide"
+                        data-text="Discover hundreds of scholarship opportunities tailored to your academic excellence and potential.">
+                        <img src="https://images.pexels.com/photos/159740/library-la-triennale-milan-italy-159740.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                            alt="Library"
+                            onerror="this.src='https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'">
+                    </div>
+                    <div class="carousel-slide"
+                        data-text="Expert guidance every step of the way. Our agents help you navigate the application process smoothly.">
+                        <img src="https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                            alt="Graduation"
+                            onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f70504504?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'">
+                    </div>
+                    <div class="carousel-slide"
+                        data-text="Unlock your potential and transform your future with quality education in China.">
+                        <img src="https://images.pexels.com/photos/87651/student-learning-girl-studies-87651.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                            alt="Student learning"
+                            onerror="this.src='https://images.unsplash.com/photo-1502920917128-1aa500764cbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'">
+                    </div>
+
+                    <div class="carousel-text-overlay">
+                        <div class="typing-text" id="typingText"></div>
+                        <div class="carousel-dots">
+                            <span class="dot active" onclick="currentSlide(0)"></span>
+                            <span class="dot" onclick="currentSlide(1)"></span>
+                            <span class="dot" onclick="currentSlide(2)"></span>
+                            <span class="dot" onclick="currentSlide(3)"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Three simple steps to your scholarship in China</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-image">
+                        <img src="https://images.pexels.com/photos/5904932/pexels-photo-5904932.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Searching"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>Find Scholarships</h3>
+                    <p>Browse our database of 2,500+ scholarships from Chinese universities.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-image">
+                        <img src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Consultation"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>Choose Your Path</h3>
+                    <p>Apply directly or connect with our verified agents for guidance.</p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-image">
+                        <img src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Campus"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>Start Your Journey</h3>
+                    <p>Get admission, apply for visa, and begin your education in China.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURED SCHOLARSHIPS ===== -->
+    <section class="featured-scholarships">
+        <div class="container">
+            <h2 class="section-title">Featured Scholarships</h2>
+            <p class="section-subtitle">Top opportunities for international students</p>
+
+            <div class="scholarships-grid" id="featuredScholarships">
+                <div class="loading">Loading scholarships...</div>
+            </div>
+
+            <div class="text-center">
+                <a href="scholarships.html" class="btn-primary">View All Scholarships</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== WHY CHOOSE US ===== -->
+    <section class="why-us">
+        <div class="container">
+            <h2 class="section-title">Why Choose Us?</h2>
+
+            <div class="benefits">
+                <div class="benefit">
+                    <div class="benefit-image">
+                        <img src="https://images.pexels.com/photos/669615/pexels-photo-669615.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Verified"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>100% Verified</h3>
+                    <p>All scholarships and agents are verified for authenticity.</p>
+                </div>
+
+                <div class="benefit">
+                    <div class="benefit-image">
+                        <img src="https://images.pexels.com/photos/3182773/pexels-photo-3182773.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Direct connection"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>Direct University Links</h3>
+                    <p>Apply directly to Chinese universities or through trusted agents.</p>
+                </div>
+
+                <div class="benefit">
+                    <div class="benefit-image">
+                        <img src="https://images.pexels.com/photos/590045/pexels-photo-590045.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Updated"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>Always Updated</h3>
+                    <p>We constantly update our database with new scholarships.</p>
+                </div>
+
+                <div class="benefit">
+                    <div class="benefit-image">
+                        <img src="https://images.pexels.com/photos/380769/pexels-photo-380769.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Support"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <h3>Free Support</h3>
+                    <p>Get free guidance on applications, visas, and preparation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== UNIVERSITY PARTNERS (FIXED) ===== -->
+    <section class="university-partners">
+        <div class="container">
+            <h2 class="section-title">Partner Universities</h2>
+            <p class="section-subtitle">Top Chinese universities offering scholarships</p>
+
+            <div class="partners-grid">
+                <div class="partner">
+                    <div class="university-logo tsinghua">TS</div>
+                    <h4>Tsinghua University</h4>
+                </div>
+                <div class="partner">
+                    <div class="university-logo peking">PKU</div>
+                    <h4>Peking University</h4>
+                </div>
+                <div class="partner">
+                    <div class="university-logo fudan">FD</div>
+                    <h4>Fudan University</h4>
+                </div>
+                <div class="partner">
+                    <div class="university-logo zhejiang">ZJU</div>
+                    <h4>Zhejiang University</h4>
+                </div>
+                <div class="partner">
+                    <div class="university-logo shanghai">SJTU</div>
+                    <h4>Shanghai Jiao Tong</h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TESTIMONIALS ===== -->
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">Success Stories</h2>
+            <p class="section-subtitle">What our students say about their journey</p>
+
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <div class="testimonial-image">
+                        <img src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Student"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <div class="testimonial-content">
+                        <p>"Thanks to China Scholarships Hub, I got a full scholarship to study Computer Science at
+                            Tsinghua University!"</p>
+                        <div class="testimonial-author">
+                            <h4>Michael Chen</h4>
+                            <span>Computer Science, Tsinghua</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <div class="testimonial-image">
+                        <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Student"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <div class="testimonial-content">
+                        <p>"The scholarship database is comprehensive. I found the perfect scholarship for my MBA
+                            program in China."</p>
+                        <div class="testimonial-author">
+                            <h4>Sarah Johnson</h4>
+                            <span>MBA, Peking University</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <div class="testimonial-image">
+                        <img src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=600"
+                            alt="Agent"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+                    </div>
+                    <div class="testimonial-content">
+                        <p>"As an agent, this platform has helped me connect with genuine students and universities."
+                        </p>
+                        <div class="testimonial-author">
+                            <h4>David Wang</h4>
+                            <span>Verified Agent, Nigeria</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CALL TO ACTION ===== -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Begin Your Journey?</h2>
+                <p>Join thousands of students who have successfully obtained scholarships to study in China.</p>
+                <div class="cta-buttons">
+                    <a href="apply.html" class="btn-primary">Start Your Application</a>
+                    <a href="agent-application.html" class="btn-secondary">Become an Agent</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-graduation-cap"></i> ChinaScholarships</h3>
+                    <p>Your trusted platform for scholarships to study in China.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="scholarships.html">Scholarships</a></li>
+                        <li><a href="apply.html">Apply Now</a></li>
+                        <li><a href="agent-application.html">Become an Agent</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-envelope"></i> savieisaiah54@gmail.com / chinaScholarshipsdirect@gmail.com</p>
+                    <p><i class="fas fa-phone"></i> +86 15107332039</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Zhuzhou, Hunan, China</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2023 China Scholarships Hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/carousel.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scholarships = [
+                {
+                    id: 1,
+                    university: "Tsinghua University",
+                    program: "Computer Science",
+                    degree: "Masters",
+                    deadline: "May 30, 2024",
+                    type: "Full Scholarship",
+                    image: "https://images.pexels.com/photos/207684/pexels-photo-207684.jpeg?auto=compress&cs=tinysrgb&w=600"
+                },
+                {
+                    id: 2,
+                    university: "Peking University",
+                    program: "Business Administration",
+                    degree: "PhD",
+                    deadline: "June 15, 2024",
+                    type: "Full Scholarship",
+                    image: "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=600"
+                },
+                {
+                    id: 3,
+                    university: "Fudan University",
+                    program: "Medicine",
+                    degree: "Bachelors",
+                    deadline: "April 20, 2024",
+                    type: "Partial Scholarship",
+                    image: "https://images.pexels.com/photos/2280568/pexels-photo-2280568.jpeg?auto=compress&cs=tinysrgb&w=600"
+                }
+            ];
+
+            const container = document.getElementById('featuredScholarships');
+            if (container) {
+                container.innerHTML = scholarships.map(scholarship => `
+<div class="scholarship-card">
+<div class="scholarship-image">
+<img src="${scholarship.image}" alt="${scholarship.university}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'">
+</div>
+<div class="scholarship-badge">${scholarship.type}</div>
+<h3>${scholarship.university}</h3>
+<p><i class="fas fa-graduation-cap"></i> <strong>Program:</strong> ${scholarship.program}</p>
+<p><i class="fas fa-user-graduate"></i> <strong>Degree:</strong> ${scholarship.degree}</p>
+<p><i class="far fa-calendar-alt"></i> <strong>Deadline:</strong> ${scholarship.deadline}</p>
+<a href="apply.html?uni=${encodeURIComponent(scholarship.university)}" class="btn-small">Apply Now</a>
+</div>
+`).join('');
+            }
+
+            const yearElement = document.querySelector('.footer-bottom p');
+            if (yearElement) {
+                const currentYear = new Date().getFullYear();
+                yearElement.innerHTML = yearElement.innerHTML.replace('2023', currentYear);
+            }
+        });
+    </script>
+</body>
+
+</html>

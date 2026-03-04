@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Notifications - China Scholarships Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo-small">
+                <i class="fas fa-graduation-cap"></i>
+            </a>
+            <button type="button" class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#profile" class="nav-item" data-section="profile">
+                <i class="fas fa-user"></i>
+                <span>My Profile</span>
+            </a>
+            <a href="#messages" class="nav-item" data-section="messages">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <a href="#settings" class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button onclick="location.href='index.html'" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Back</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="dashboard-container">
+        <div class="content-area">
+            <main class="notifications-page">
+                <header class="notifications-header">
+                    <h1>Notifications</h1>
+                    <div>
+                        <button id="backToDashboard" class="btn-link">Back</button>
+                    </div>
+                </header>
+
+                <div class="notifications-controls">
+                    <div>
+                        <label>Filter:</label>
+                        <select id="notifFilter" aria-label="Filter notifications">
+                            <option value="all">All</option>
+                            <option value="unread">Unread</option>
+                            <option value="read">Read</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Sort:</label>
+                        <select id="notifSort" aria-label="Sort notifications">
+                            <option value="desc">Newest first</option>
+                            <option value="asc">Oldest first</option>
+                        </select>
+                    </div>
+                    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="selectAllNotifs"> Select
+                        </label>
+                        <button id="markSelectedBtn" class="btn">Mark selected</button>
+                        <button id="deleteSelectedBtn" class="btn btn-danger">Delete selected</button>
+                        <button id="markAllReadPageBtn" class="btn">Mark all as read</button>
+                        <button id="deleteReadPageBtn" class="btn btn-danger">Delete read</button>
+                    </div>
+                </div>
+
+                <section id="notificationsContainer" class="notifications-list-page">
+                    <!-- Notifications will be injected here -->
+                </section>
+
+                <div class="notifications-footer">
+                    <button id="loadMoreBtn" class="btn">Load more</button>
+                </div>
+            </main>
+
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+            <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+            <script src="js/firebase-config.js" defer></script>
+            <script src="js/firebase-auth.js" defer></script>
+            <script src="js/notifications.js" defer></script>
+            <script src="js/notifications-page.js" defer></script>
+    </main>
+    </div>
+    </main>
+</body>
+
+</html>

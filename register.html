@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - China Scholarships Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- ===== HEADER & NAVIGATION ===== -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>ChinaScholarships</h1>
+                </a>
+                <div class="mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== REGISTER SECTION ===== -->
+    <section class="auth-section">
+        <div class="auth-container">
+            <div class="auth-card register-form-card">
+                <div class="auth-header">
+                    <h1 id="formTitle">Create an Account</h1>
+                    <p id="formSubtitle">Register as a student</p>
+                </div>
+
+                <div class="alert alert-error" id="errorMessage" style="display: none;"></div>
+                <div class="alert alert-success" id="successMessage" style="display: none;"></div>
+
+                <!-- Role Selection Tabs -->
+                <div class="auth-tabs"
+                    style="margin-bottom: 30px; display: flex; gap: 10px; border-bottom: 2px solid var(--light-gray);">
+                    <button type="button" class="auth-tab active" data-role="student"
+                        onclick="switchRegisterRole('student')">
+                        <i class="fas fa-graduation-cap"></i> Register as Student
+                    </button>
+                    <button type="button" class="auth-tab" data-role="agent" onclick="switchRegisterRole('agent')">
+                        <i class="fas fa-user-tie"></i> Become an Agent
+                    </button>
+                </div>
+
+                <form id="registerForm" class="auth-form">
+                    <!-- Common Fields -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" placeholder="Enter your first name"
+                                autocomplete="given-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" placeholder="Enter your last name"
+                                autocomplete="family-name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" autocomplete="email"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number"
+                            autocomplete="tel" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" name="country" placeholder="Enter your country name"
+                            autocomplete="country" maxlength="100" required>
+                    </div>
+
+                    <!-- Agent-specific fields - Hidden -->
+                    <div id="agentFields" class="hidden" style="display: none;">
+                        <div class="form-group">
+                            <label for="experience">Years of Experience</label>
+                            <input type="number" id="experience" name="experience" placeholder="e.g., 5" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bio">Professional Bio</label>
+                            <textarea id="bio" name="bio" placeholder="Tell us about your experience and expertise"
+                                rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profilePhoto">Profile Photo (Optional)</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*"
+                                    style="display: none;">
+                                <button type="button" class="btn-secondary"
+                                    onclick="document.getElementById('profilePhoto').click()">
+                                    <i class="fas fa-camera"></i> Choose Photo
+                                </button>
+                                <span id="photoFileName" style="margin-left: 10px; color: var(--gray);">No file
+                                    chosen</span>
+                            </div>
+                            <small>Recommended: Square image, max 5MB</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="agentCountry">Country of Operation</label>
+                            <input type="text" id="agentCountry" name="agentCountry"
+                                placeholder="Enter your country name" autocomplete="country" maxlength="100">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-input-group">
+                            <input type="password" id="password" name="password" placeholder="Enter a strong password"
+                                autocomplete="new-password" required>
+                            <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('password')"></i>
+                        </div>
+                        <small>At least 6 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <div class="password-input-group">
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                placeholder="Confirm your password" autocomplete="new-password" required>
+                            <i class="fas fa-eye toggle-password"
+                                onclick="togglePasswordVisibility('confirmPassword')"></i>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-agree">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <span>I agree to the <a href="#" target="_blank">Terms & Conditions</a> and <a href="#"
+                                target="_blank">Privacy Policy</a></span>
+                    </label>
+
+                    <button type="submit" class="btn-primary btn-full" id="registerBtn">
+                        <span id="btnText">Register as Student</span>
+                        <i class="fas fa-spinner fa-spin" id="btnLoader" style="display: none;"></i>
+                    </button>
+                </form>
+
+                <p class="auth-switch">
+                    Already have an account? <a href="login.html">Login here</a>
+                </p>
+            </div>
+
+            <div class="auth-illustration">
+                <div class="illustration-content">
+                    <i class="fas fa-user-plus"></i>
+                    <h3>Join Us Today</h3>
+                    <p>Start your journey towards studying in China</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 China Scholarships Hub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js" defer></script>
+    <script src="js/firebase-auth.js" defer></script>
+    <script src="js/register.js" defer></script>
+</body>
+
+</html>

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholarships | China Scholarships Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Additional styles for scholarships page */
+        .scholarships-header {
+            background: linear-gradient(135deg, #f5f7ff 0%, #e3e9ff 100%);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 6px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .filter-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid #e1e5ee;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(51, 102, 255, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .scholarships-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .scholarship-item {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .scholarship-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .scholarship-image {
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .scholarship-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .scholarship-item:hover .scholarship-image img {
+            transform: scale(1.05);
+        }
+
+        .scholarship-content {
+            padding: 25px;
+        }
+
+        .scholarship-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .scholarship-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .scholarship-university {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .scholarship-details {
+            margin: 15px 0;
+        }
+
+        .scholarship-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            color: var(--gray);
+        }
+
+        .scholarship-detail i {
+            color: var(--primary);
+            width: 20px;
+        }
+
+        .deadline {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 50px;
+        }
+
+        .page-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #e1e5ee;
+            border-radius: 6px;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .page-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .scholarships-list {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER & NAVIGATION ===== -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>ChinaScholarships</h1>
+                </a>
+
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="scholarships.html" class="active"><i
+                                class="fas fa-university"></i><span>Scholarships</span></a></li>
+                    <li><a href="apply.html"><i class="fas fa-edit"></i><span>Apply Now</span></a></li>
+                    <li><a href="agent-application.html"><i class="fas fa-user-tie"></i><span>Become an Agent</span></a>
+                    </li>
+                    <li><a href="agents.html"><i class="fas fa-users"></i><span>Our Agents</span></a></li>
+                    <li><a href="about.html"><i class="fas fa-info-circle"></i><span>About</span></a></li>
+                    <li><a href="contact.html"><i class="fas fa-envelope"></i><span>Contact</span></a></li>
+                    <li><a href="login.html"><i class="fas fa-sign-in-alt"></i><span>Login</span></a></li>
+                    <li><a href="register.html"><i class="fas fa-user-plus"></i><span>Register</span></a></li>
+                </ul>
+
+                <div class="mobile-menu" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== SCHOLARSHIPS HEADER ===== -->
+    <section class="scholarships-header">
+        <div class="container">
+            <h1>Find Your Perfect Scholarship</h1>
+            <p>Browse 2,500+ scholarships from top Chinese universities</p>
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput"
+                    placeholder="Search scholarships by university, program, or field...">
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FILTER SECTION ===== -->
+    <section class="container">
+        <div class="filter-section">
+            <h3 style="margin-bottom: 25px; text-align: center;">Filter Scholarships</h3>
+
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label for="degreeFilter"><i class="fas fa-graduation-cap"></i> Degree Level</label>
+                    <select id="degreeFilter">
+                        <option value="">All Degrees</option>
+                        <option value="bachelor">Bachelor's</option>
+                        <option value="master">Master's</option>
+                        <option value="phd">PhD</option>
+                        <option value="diploma">Diploma</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="fieldFilter"><i class="fas fa-book"></i> Field of Study</label>
+                    <select id="fieldFilter">
+                        <option value="">All Fields</option>
+                        <option value="engineering">Engineering</option>
+                        <option value="business">Business</option>
+                        <option value="medicine">Medicine</option>
+                        <option value="computer">Computer Science</option>
+                        <option value="arts">Arts & Humanities</option>
+                        <option value="science">Natural Sciences</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="typeFilter"><i class="fas fa-award"></i> Scholarship Type</label>
+                    <select id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="full">Full Scholarship</option>
+                        <option value="partial">Partial Scholarship</option>
+                        <option value="tuition">Tuition Waiver</option>
+                        <option value="government">Government Scholarship</option>
+                        <option value="university">University Scholarship</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="deadlineFilter"><i class="far fa-calendar-alt"></i> Deadline</label>
+                    <select id="deadlineFilter">
+                        <option value="">Any Time</option>
+                        <option value="30">Within 30 days</option>
+                        <option value="60">Within 60 days</option>
+                        <option value="90">Within 90 days</option>
+                        <option value="2024">2024 Scholarships</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button id="applyFilters" class="btn-primary">Apply Filters</button>
+                <button id="resetFilters" class="btn-secondary">Reset Filters</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SCHOLARSHIPS LIST ===== -->
+    <section class="container">
+        <div class="scholarships-list" id="scholarshipsList">
+            <!-- Scholarships will be loaded by JavaScript -->
+            <div class="loading" style="text-align: center; grid-column: 1 / -1; padding: 40px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary); margin-bottom: 20px;"></i>
+                <p>Loading scholarships...</p>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- Pagination will be added by JavaScript -->
+        </div>
+    </section>
+
+    <!-- ===== CALL TO ACTION ===== -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Need Help Choosing?</h2>
+                <p>Our verified agents can help you find the perfect scholarship and guide you through the application
+                    process.</p>
+                <div class="cta-buttons">
+                    <a href="agents.html" class="btn-primary">Find an Agent</a>
+                    <a href="contact.html" class="btn-secondary">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-graduation-cap"></i> ChinaScholarships</h3>
+                    <p>Your trusted platform for scholarships to study in China.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="scholarships.html">Scholarships</a></li>
+                        <li><a href="apply.html">Apply Now</a></li>
+                        <li><a href="agent-application.html">Become an Agent</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-envelope"></i> savieisaiah54@gmail.com / chinaScholarshipsdirect@gmail.com</p>
+                    <p><i class="fas fa-phone"></i> +86 15107332039</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Zhuzhou, Hunan, China</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2023 China Scholarships Hub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Scholarship data
+        const scholarshipsData = [
+            {
+                id: 1,
+                university: "Tsinghua University",
+                program: "Computer Science",
+                degree: "Master's",
+                field: "computer",
+                type: "full",
+                deadline: "2024-05-30",
+                benefits: "Full tuition + Monthly stipend",
+                requirements: "IELTS 6.5, Bachelor's in related field",
+                image: "https://images.pexels.com/photos/207684/pexels-photo-207684.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 2,
+                university: "Peking University",
+                program: "Business Administration (MBA)",
+                degree: "master",
+                field: "business",
+                type: "full",
+                deadline: "2024-06-15",
+                benefits: "Full scholarship + Accommodation",
+                requirements: "GMAT 650+, 3 years work experience",
+                image: "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 3,
+                university: "Fudan University",
+                program: "Medicine",
+                degree: "bachelor",
+                field: "medicine",
+                type: "partial",
+                deadline: "2024-04-20",
+                benefits: "Tuition waiver + Insurance",
+                requirements: "High school diploma, English proficiency",
+                image: "https://images.pexels.com/photos/2280568/pexels-photo-2280568.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 4,
+                university: "Zhejiang University",
+                program: "Mechanical Engineering",
+                degree: "phd",
+                field: "engineering",
+                type: "full",
+                deadline: "2024-07-10",
+                benefits: "Full scholarship + Research grant",
+                requirements: "Master's degree, Research proposal",
+                image: "https://images.pexels.com/photos/256490/pexels-photo-256490.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 5,
+                university: "Shanghai Jiao Tong University",
+                program: "Artificial Intelligence",
+                degree: "master",
+                field: "computer",
+                type: "government",
+                deadline: "2024-05-01",
+                benefits: "Government scholarship + Stipend",
+                requirements: "Bachelor's in CS, Strong math background",
+                image: "https://images.pexels.com/photos/3861964/pexels-photo-3861964.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 6,
+                university: "Nanjing University",
+                program: "International Relations",
+                degree: "bachelor",
+                field: "arts",
+                type: "tuition",
+                deadline: "2024-08-30",
+                benefits: "Tuition waiver",
+                requirements: "High school diploma, English/Chinese proficiency",
+                image: "https://images.pexels.com/photos/159775/library-la-trobe-study-students-159775.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 7,
+                university: "Wuhan University",
+                program: "Biotechnology",
+                degree: "phd",
+                field: "science",
+                type: "full",
+                deadline: "2024-06-30",
+                benefits: "Full scholarship + Research funding",
+                requirements: "Master's in Biology/Chemistry, Publications",
+                image: "https://images.pexels.com/photos/256541/pexels-photo-256541.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 8,
+                university: "Sun Yat-sen University",
+                program: "Finance",
+                degree: "master",
+                field: "business",
+                type: "partial",
+                deadline: "2024-05-15",
+                benefits: "50% tuition waiver",
+                requirements: "GMAT 600+, Bachelor's degree",
+                image: "https://images.pexels.com/photos/259200/pexels-photo-259200.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 9,
+                university: "Harbin Institute of Technology",
+                program: "Aerospace Engineering",
+                degree: "master",
+                field: "engineering",
+                type: "university",
+                deadline: "2024-07-31",
+                benefits: "University scholarship + Accommodation",
+                requirements: "Bachelor's in Engineering, English proficiency",
+                image: "https://images.pexels.com/photos/2280571/pexels-photo-2280571.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                id: 10,
+                university: "Sichuan University",
+                program: "Chinese Language & Culture",
+                degree: "diploma",
+                field: "arts",
+                type: "partial",
+                deadline: "2024-09-01",
+                benefits: "Tuition discount + Cultural activities",
+                requirements: "High school diploma, No Chinese required",
+                image: "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=600"
+            }
+        ];
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Format degree
+        function formatDegree(degree) {
+            const degreeMap = {
+                'bachelor': "Bachelor's Degree",
+                'master': "Master's Degree",
+                'phd': "PhD",
+                'diploma': "Diploma"
+            };
+            return degreeMap[degree] || degree;
+        }
+
+        // Format type
+        function formatType(type) {
+            const typeMap = {
+                'full': "Full Scholarship",
+                'partial': "Partial Scholarship",
+                'tuition': "Tuition Waiver",
+                'government': "Government Scholarship",
+                'university': "University Scholarship"
+            };
+            return typeMap[type] || type;
+        }
+
+        // Display scholarships
+        function displayScholarships(scholarships) {
+            const container = document.getElementById('scholarshipsList');
+            if (!container) return;
+
+            if (scholarships.length === 0) {
+                container.innerHTML = `
+<div class="no-results">
+<i class="fas fa-search"></i>
+<h3>No scholarships found</h3>
+<p>Try adjusting your filters or search term</p>
+</div>
+`;
+                return;
+            }
+
+            container.innerHTML = scholarships.map(scholarship => `
+<div class="scholarship-item" data-degree="${scholarship.degree}" data-field="${scholarship.field}" data-type="${scholarship.type}">
+<div class="scholarship-image">
+<img src="${scholarship.image}" alt="${scholarship.university}">
+</div>
+<div class="scholarship-content">
+<div class="scholarship-header">
+<h3 class="scholarship-university">${scholarship.university}</h3>
+<span class="scholarship-badge">${formatType(scholarship.type)}</span>
+</div>
+
+<div class="scholarship-details">
+<div class="scholarship-detail">
+<i class="fas fa-graduation-cap"></i>
+<span><strong>Program:</strong> ${scholarship.program}</span>
+</div>
+<div class="scholarship-detail">
+<i class="fas fa-user-graduate"></i>
+<span><strong>Degree:</strong> ${formatDegree(scholarship.degree)}</span>
+</div>
+<div class="scholarship-detail">
+<i class="fas fa-book"></i>
+<span><strong>Field:</strong> ${scholarship.field.charAt(0).toUpperCase() + scholarship.field.slice(1)}</span>
+</div>
+<div class="scholarship-detail">
+<i class="fas fa-gift"></i>
+<span><strong>Benefits:</strong> ${scholarship.benefits}</span>
+</div>
+<div class="scholarship-detail">
+<i class="far fa-calendar-alt deadline"></i>
+<span><strong>Deadline:</strong> ${formatDate(scholarship.deadline)}</span>
+</div>
+</div>
+
+<div class="scholarship-actions">
+<a href="apply.html?scholarship=${scholarship.id}" class="btn-primary" style="display: block; text-align: center;">Apply Now</a>
+</div>
+</div>
+</div>
+`).join('');
+        }
+
+        // Filter scholarships
+        function filterScholarships() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const degreeFilter = document.getElementById('degreeFilter').value;
+            const fieldFilter = document.getElementById('fieldFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const deadlineFilter = document.getElementById('deadlineFilter').value;
+
+            const filtered = scholarshipsData.filter(scholarship => {
+                // Search term filter
+                const matchesSearch = !searchTerm ||
+                    scholarship.university.toLowerCase().includes(searchTerm) ||
+                    scholarship.program.toLowerCase().includes(searchTerm) ||
+                    scholarship.field.toLowerCase().includes(searchTerm);
+
+                // Degree filter
+                const matchesDegree = !degreeFilter || scholarship.degree === degreeFilter;
+
+                // Field filter
+                const matchesField = !fieldFilter || scholarship.field === fieldFilter;
+
+                // Type filter
+                const matchesType = !typeFilter || scholarship.type === typeFilter;
+
+                // Deadline filter
+                let matchesDeadline = true;
+                if (deadlineFilter) {
+                    const deadlineDate = new Date(scholarship.deadline);
+                    const today = new Date();
+                    const daysUntilDeadline = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+
+                    if (deadlineFilter === '30') {
+                        matchesDeadline = daysUntilDeadline <= 30 && daysUntilDeadline >= 0;
+                    } else if (deadlineFilter === '60') {
+                        matchesDeadline = daysUntilDeadline <= 60 && daysUntilDeadline >= 0;
+                    } else if (deadlineFilter === '90') {
+                        matchesDeadline = daysUntilDeadline <= 90 && daysUntilDeadline >= 0;
+                    } else if (deadlineFilter === '2024') {
+                        matchesDeadline = deadlineDate.getFullYear() === 2024;
+                    }
+                }
+
+                return matchesSearch && matchesDegree && matchesField && matchesType && matchesDeadline;
+            });
+
+            displayScholarships(filtered);
+            updatePagination(filtered);
+        }
+
+        // Update pagination
+        function updatePagination(scholarships) {
+            const pagination = document.getElementById('pagination');
+            if (!pagination) return;
+
+            const itemsPerPage = 6;
+            const totalPages = Math.ceil(scholarships.length / itemsPerPage);
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let paginationHTML = '';
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHTML += `<button class="page-btn ${i === 1 ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+
+            pagination.innerHTML = paginationHTML;
+
+            // Add click events
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const page = parseInt(this.dataset.page);
+                    const start = (page - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    const pageScholarships = scholarships.slice(start, end);
+
+                    displayScholarships(pageScholarships);
+
+                    // Update active page
+                    document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Scroll to top
+                    window.scrollTo({ top: 600, behavior: 'smooth' });
+                });
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Display initial scholarships (first page)
+            const initialScholarships = scholarshipsData.slice(0, 6);
+            displayScholarships(initialScholarships);
+
+            // Set up pagination
+            updatePagination(scholarshipsData);
+
+            // Set up filter events
+            document.getElementById('applyFilters')?.addEventListener('click', filterScholarships);
+            document.getElementById('resetFilters')?.addEventListener('click', function () {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('degreeFilter').value = '';
+                document.getElementById('fieldFilter').value = '';
+                document.getElementById('typeFilter').value = '';
+                document.getElementById('deadlineFilter').value = '';
+
+                const initialScholarships = scholarshipsData.slice(0, 6);
+                displayScholarships(initialScholarships);
+                updatePagination(scholarshipsData);
+            });
+
+            // Search as you type
+            document.getElementById('searchInput')?.addEventListener('input', filterScholarships);
+
+            // Filter on select change
+            ['degreeFilter', 'fieldFilter', 'typeFilter', 'deadlineFilter'].forEach(id => {
+                document.getElementById(id)?.addEventListener('change', filterScholarships);
+            });
+
+            // Set current year in footer
+            const yearElement = document.querySelector('.footer-bottom p');
+            if (yearElement) {
+                const currentYear = new Date().getFullYear();
+                yearElement.innerHTML = yearElement.innerHTML.replace('2023', currentYear);
+            }
+        });
+    </script>
+</body>
+
+</html>
