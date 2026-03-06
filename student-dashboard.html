@@ -107,10 +107,7 @@
                         <i class="fas fa-bell"></i>
                         <span class="notification-badge" id="globalNotificationBadge">3</span>
                     </div>
-                    <div class="announcement-bell" title="Announcements">
-                        <i class="fas fa-bullhorn"></i>
-                        <span class="announcement-badge"></span>
-                    </div>
+                    <!-- Announcements removed -->
                     <div class="user-profile">
                         <div class="user-avatar" id="userAvatar">S</div>
                         <div class="user-dropdown">
@@ -127,14 +124,15 @@
                 <p>Here's your scholarship application summary</p>
             </div>
 
-            <!-- ===== ANNOUNCEMENTS CARD ===== -->
-            <div class="card" id="announcementsCard" style="margin-top:24px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <h2 style="margin:0;font-size:1.2em;"><i class="fas fa-bullhorn"></i> Announcements</h2>
-                    <span class="announcement-badge"></span>
+            <!-- Announcements (minimal) -->
+            <section id="announcements-section" style="margin-top:16px;">
+                <div class="card">
+                    <h3>Announcements</h3>
+                    <div id="announcements-list">Loading announcements...</div>
                 </div>
-                <div id="studentAnnouncementsList" style="margin-top:16px;"></div>
-            </div>
+            </section>
+
+            <!-- Announcements removed -->
 
             <div class="card" style="margin-top: 24px;">
                 <!-- Application Status section removed as per new requirements -->
@@ -547,6 +545,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
     <script src="js/firebase-config.js" defer></script>
     <script src="js/firebase-auth.js" defer></script>
+    <script src="js/announcements-view.js" defer></script>
     <script src="js/notifications.js" defer></script>
     <script src="js/student-dashboard.js" defer></script>
 </body>

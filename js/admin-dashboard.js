@@ -8,6 +8,21 @@ function escapeHtml(str) {
     });
 }
 
+// Lightweight toast for success/error feedback
+function showToast(message, duration = 3000) {
+    let t = document.getElementById('adminToast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'adminToast';
+        t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 14px;border-radius:8px;z-index:99999;max-width:90%;text-align:center;';
+        document.body.appendChild(t);
+    }
+    t.textContent = message;
+    t.style.display = 'block';
+    clearTimeout(t._hide);
+    t._hide = setTimeout(() => { t.style.display = 'none'; }, duration);
+}
+
 // Helper: render visual stars for ratings (uses FontAwesome classes)
 function renderStars(n) {
     const count = Math.max(0, Math.min(5, Number(n) || 0));
@@ -268,6 +283,37 @@ window.markRatingAsRead = function (ratingId) {
 window.markAgentMessageAsRead = function (msgId) {
     firebase.firestore().collection('messages').doc(msgId).update({ status: 'read' });
 };
+// ===== Simple Announcements Admin Handler =====
+document.addEventListener('DOMContentLoaded', function () {
+    const annForm = document.getElementById('annForm');
+    const annMsg = document.getElementById('annAdminMsg');
+    if (!annForm) return;
+    annForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (annMsg) { annMsg.style.display = 'none'; }
+        const title = document.getElementById('annTitle')?.value.trim();
+        const content = document.getElementById('annContent')?.value.trim();
+        const targetAudience = document.getElementById('annTarget')?.value || 'all';
+        if (!title || !content) {
+            if (annMsg) { annMsg.style.display = ''; annMsg.style.color = 'red'; annMsg.textContent = 'Please provide title and content.'; }
+            return;
+        }
+        try {
+            await firebase.firestore().collection('announcements').add({
+                title,
+                content,
+                targetAudience,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isActive: true
+            });
+            annForm.reset();
+            if (annMsg) { annMsg.style.display = ''; annMsg.style.color = 'green'; annMsg.textContent = 'Announcement published.'; }
+        } catch (err) {
+            console.error('Publish announcement error', err);
+            if (annMsg) { annMsg.style.display = ''; annMsg.style.color = 'red'; annMsg.textContent = 'Error publishing announcement.'; }
+        }
+    });
+});
 // ===== ADMIN MESSAGES SECTION: Reports, Ratings, Agent-to-Admin =====
 function listenToAdminMessages() {
     const messagesList = document.getElementById('adminMessagesList');
@@ -626,7 +672,7 @@ if (announcementFormEl) announcementFormEl.onsubmit = async function (e) {
     const targetTypeEl = document.getElementById('announcementTargetType');
     const title = titleEl ? titleEl.value.trim() : '';
     const content = contentEl ? contentEl.value.trim() : '';
-    const targetType = targetTypeEl ? targetTypeEl.value : 'general';
+    const targetType = targetTypeEl ? targetTypeEl.value : 'all';
     if (!title || !content) {
         alert('Please provide title and content for the announcement.');
         return;
@@ -635,13 +681,15 @@ if (announcementFormEl) announcementFormEl.onsubmit = async function (e) {
         const announcement = {
             title,
             content,
-            targetType,
-            selectedUserIds: Array.isArray(selectedUserIds) ? selectedUserIds : [],
-            createdAt: new Date().toISOString(),
+            targetAudience: targetType, // 'agents' | 'students' | 'all' | 'individual'
+            targetIds: Array.isArray(selectedUserIds) ? selectedUserIds : [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null,
+            isActive: true
         };
-        if (window.db) {
-            await window.db.collection('announcements').add(announcement);
-        }
+        // Use firebase directly for consistency
+        await firebase.firestore().collection('announcements').add(announcement);
         // Create notifications for targeted users
         if (targetType === 'individual' && Array.isArray(selectedUserIds) && selectedUserIds.length) {
             selectedUserIds.forEach(uid => {
@@ -676,9 +724,10 @@ if (announcementFormEl) announcementFormEl.onsubmit = async function (e) {
         const annModal = document.getElementById('announcementFormModal'); if (annModal) annModal.style.display = 'none';
         if (titleEl) titleEl.value = '';
         if (contentEl) contentEl.value = '';
+        showToast('Announcement posted successfully');
     } catch (err) {
         console.error('Failed to post announcement', err);
-        alert('Failed to post announcement. See console for details.');
+        showToast('Failed to post announcement: ' + (err.message || err));
     }
 };
 // (announcement logic handled inside the announcement form submit handler)
@@ -704,14 +753,15 @@ function renderAnnouncementsList() {
     list.innerHTML = announcements.map(a => {
         // Delivery stats
         let deliveredTo = [];
-        if (a.targetType === 'general' || a.targetType === 'all') {
+        const ta = a.targetAudience || a.targetType || 'all';
+        if (ta === 'all' || ta === 'general') {
             // All users (students + agents)
             deliveredTo = (window.allUsers || []).map(u => u.uid);
-        } else if (a.targetType === 'student' || a.targetType === 'students') {
+        } else if (ta === 'student' || ta === 'students') {
             deliveredTo = (window.allUsers || []).filter(u => u.role === 'student').map(u => u.uid);
-        } else if (a.targetType === 'agent' || a.targetType === 'agents') {
+        } else if (ta === 'agent' || ta === 'agents') {
             deliveredTo = (window.allUsers || []).filter(u => u.role === 'agent').map(u => u.uid);
-        } else if (a.targetType === 'individual') {
+        } else if (ta === 'individual') {
             deliveredTo = a.targetIds || [];
         }
         const readBy = a.readBy || [];
@@ -727,8 +777,8 @@ function renderAnnouncementsList() {
              <div style="margin:10px 0 0 0;">${a.content}</div>
              ${a.attachmentUrl ? `<div style='margin-top:8px;'><a href='${a.attachmentUrl}' target='_blank'>View Attachment</a></div>` : ''}
              <div style="margin-top:10px;font-size:0.95em;color:var(--gray);">
-                 Target: ${a.targetType === 'general' ? 'All Users' : a.targetType.charAt(0).toUpperCase() + a.targetType.slice(1)}
-                 ${a.targetType === 'individual' ? ` (${(a.targetIds || []).length} users)` : ''}
+                 Target: ${ta === 'all' || ta === 'general' ? 'All Users' : ta.charAt(0).toUpperCase() + ta.slice(1)}
+                 ${ta === 'individual' ? ` (${(a.targetIds || []).length} users)` : ''}
              </div>
              <div style="margin-top:8px;font-size:0.95em;color:#007bff;">
                  <strong>Delivery Stats:</strong> Delivered: ${totalDelivered} &nbsp;|&nbsp; Read: ${totalRead} &nbsp;|&nbsp; Unread: ${totalUnread}
@@ -745,7 +795,13 @@ function renderAnnouncementsList() {
 // Delete announcement
 window.deleteAnnouncement = async function (id) {
     if (!confirm('Delete this announcement?')) return;
-    await firebase.firestore().collection('announcements').doc(id).delete();
+    try {
+        await firebase.firestore().collection('announcements').doc(id).delete();
+        showToast('Announcement deleted');
+    } catch (err) {
+        console.error('Failed to delete announcement', err);
+        showToast('Failed to delete announcement: ' + (err.message || err));
+    }
 };
 
 // TODO: Implement editAnnouncement (optional)

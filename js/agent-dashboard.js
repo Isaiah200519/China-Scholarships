@@ -194,75 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 messagesList.innerHTML = html;
             });
     });
-    firebase.auth().onAuthStateChanged(function (user) {
-        if (!user) return;
-        const uid = user.uid;
-        const announcementsList = document.getElementById('agentAnnouncementsList');
-        if (!announcementsList) return;
-        // Listen for announcements (global, role, or targeted to this agent) within last 30 days
-        const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        firebase.firestore().collection('announcements')
-            .where('timestamp', '>=', thirtyDaysAgo)
-            .onSnapshot(async function (snapshot) {
-                let unreadCount = 0;
-                announcementsList.innerHTML = '';
-                const userReadRef = firebase.firestore().collection('users').doc(uid);
-                // Fetch user's read announcements
-                const userDoc = await userReadRef.get();
-                const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Show if targetType is 'general', matches user role, or includes user UID
-                    const userRole = user.role || (userDoc.exists ? userDoc.data().role : 'agent');
-                    const show = (
-                        data.targetType === 'general' ||
-                        data.targetType === userRole ||
-                        (Array.isArray(data.targetIds) && data.targetIds.includes(uid))
-                    );
-                    if (show) {
-                        const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
-                        if (!isRead) unreadCount++;
-                        const card = document.createElement('div');
-                        card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
-                        card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
-                        card.innerHTML = `
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
-                                <div style="flex:1;">
-                                    <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
-                                    <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
-                                    <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.timestamp && data.timestamp.toDate ? data.timestamp.toDate().toLocaleString() : ''}</div>
-                                </div>
-                                ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${doc.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
-                            </div>
-                        `;
-                        announcementsList.appendChild(card);
-                    }
-                });
-                // Update badge in card header
-                const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
-                badgeEls.forEach(badge => {
-                    if (unreadCount > 0) {
-                        badge.style.display = '';
-                        badge.textContent = unreadCount;
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                });
-            });
-        // Mark-as-read button handler (event delegation)
-        announcementsList.addEventListener('click', async function (e) {
-            if (e.target && e.target.classList.contains('mark-announcement-read')) {
-                const annId = e.target.getAttribute('data-announcement-id');
-                if (!annId) return;
-                // Atomically add to readAnnouncements array
-                await firebase.firestore().collection('users').doc(uid).update({
-                    readAnnouncements: firebase.firestore.FieldValue.arrayUnion(annId)
-                });
-            }
-        });
-    });
+    // Announcements handled by js/announcements-view.js
 });
 // Handle Check Application Status button click
 function handleCheckStatusClick(btn) {
@@ -724,15 +656,18 @@ function listenToAgentAnnouncements() {
         if (!user) return;
         // Listen for announcements targeted to all, agents, or this user
         announcementUnsubscribe = firebase.firestore().collection('announcements')
-            .orderBy('timestamp', 'desc')
+            .orderBy('createdAt', 'desc')
             .onSnapshot(snapshot => {
                 announcements = snapshot.docs
                     .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(a =>
-                        a.targetType === 'general' ||
-                        a.targetType === 'agent' ||
-                        (a.targetType === 'individual' && (a.targetIds || []).includes(user.uid))
-                    );
+                    .filter(a => {
+                        const ta = a.targetAudience || a.targetType || 'all';
+                        return (
+                            ta === 'all' || ta === 'general' ||
+                            ta === 'agent' || ta === 'agents' ||
+                            (ta === 'individual' && (a.targetIds || []).includes(user.uid))
+                        );
+                    });
                 // Count unread
                 unreadAnnouncements = announcements.filter(a => !(a.readBy || []).includes(user.uid)).length;
                 // Update badge
@@ -764,7 +699,7 @@ function renderAnnouncementsDropdown() {
         document.body.appendChild(announcementsDropdown);
     }
     let html = '';
-    if (!announcements.length) {
+    if (!announcements || !announcements.length) {
         html = '<div style="padding: 1.2em; color: var(--gray); text-align: center;">No announcements yet.</div>';
     } else {
         announcements.slice(0, 10).forEach(a => {
@@ -823,67 +758,201 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== REAL-TIME ANNOUNCEMENTS LIST (MAIN SECTION) =====
     firebase.auth().onAuthStateChanged(function (user) {
         if (!user) return;
-        const uid = user.uid;
-        const announcementsList = document.getElementById('agentAnnouncementsList');
-        if (!announcementsList) return;
-        // Listen for announcements (global or targeted to this agent)
-        firebase.firestore().collection('announcements')
-            .orderBy('createdAt', 'desc')
-            .onSnapshot(async function (snapshot) {
-                let unreadCount = 0;
-                announcementsList.innerHTML = '';
-                const userReadRef = firebase.firestore().collection('users').doc(uid);
-                // Fetch user's read announcements
-                const userDoc = await userReadRef.get();
-                const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Only show if global or targeted to this user
-                    if (data.target === 'all' || (Array.isArray(data.targetUsers) && data.targetUsers.includes(uid))) {
-                        const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
-                        if (!isRead) unreadCount++;
-                        const card = document.createElement('div');
-                        card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
-                        card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
-                        card.innerHTML = `
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
-                                <div style="flex:1;">
-                                    <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
-                                    <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.message || ''}</div>
-                                    <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : ''}</div>
+        (async () => {
+            try {
+                const uid = user.uid;
+                const announcementsList = document.getElementById('agentAnnouncementsList');
+                if (!announcementsList) return;
+                // Get user's role from users collection
+                const userDoc = await firebase.firestore().collection('users').doc(uid).get();
+                const userRole = (userDoc.exists && userDoc.data().role) ? userDoc.data().role : 'agent';
+                console.log('[Announcements] current user:', uid, 'role:', userRole);
+
+                // Build query: try indexed 'in' query first, otherwise fall back to client-side filtering
+                const col = firebase.firestore().collection('announcements');
+
+                function normalizeRoleKey(r) {
+                    if (!r) return r;
+                    r = r.toString().toLowerCase();
+                    if (r === 'agent') return 'agents';
+                    if (r === 'student') return 'students';
+                    return r;
+                }
+
+                function matchesAudienceField(aField, userRoleKey, uid, targetIds) {
+                    const ta = (aField || '').toString().toLowerCase();
+                    const roleKey = normalizeRoleKey(userRoleKey);
+                    if (ta === 'all' || ta === 'general') return true;
+                    if (ta === roleKey || ta === userRoleKey) return true;
+                    if (ta === 'individual' && Array.isArray(targetIds) && targetIds.includes(uid)) return true;
+                    return false;
+                }
+
+                console.log('[Announcements] preparing query for role:', userRole);
+
+                try {
+                    const query = col
+                        .where('isActive', '==', true)
+                        .where('targetAudience', 'in', [userRole, 'all'])
+                        .orderBy('createdAt', 'desc');
+
+                    query.onSnapshot(async (snapshot) => {
+                        console.log('[Announcements] snapshot received, docs:', snapshot.size);
+                        let unreadCount = 0;
+                        announcementsList.innerHTML = '';
+                        const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            console.log('[Announcements] doc:', doc.id, data);
+                            const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
+                            if (!isRead) unreadCount++;
+                            const card = document.createElement('div');
+                            card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
+                            card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
+                            card.innerHTML = `
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
+                                        <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
+                                        <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : ''}</div>
+                                    </div>
+                                    ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${doc.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
                                 </div>
-                                ${!isRead ? `<button class=\"btn-secondary mark-announcement-read\" data-announcement-id=\"${doc.id}\" style=\"margin-left:10px;\">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
-                            </div>
-                        `;
-                        announcementsList.appendChild(card);
-                    }
-                });
-                // Update badge in card header
-                const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
-                badgeEls.forEach(badge => {
-                    if (unreadCount > 0) {
-                        badge.style.display = '';
-                        badge.textContent = unreadCount;
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                });
-            });
-        // Mark-as-read button handler (event delegation)
+                            `;
+                            announcementsList.appendChild(card);
+                        });
+                        // Update badge in card header
+                        const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
+                        badgeEls.forEach(badge => {
+                            if (unreadCount > 0) {
+                                badge.style.display = '';
+                                badge.textContent = unreadCount;
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        });
+                    }, (error) => {
+                        console.error('[Announcements] onSnapshot error (indexed query):', error);
+                        // Fallback
+                        col.where('isActive', '==', true).orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                            console.log('[Announcements] fallback snapshot received, docs:', snapshot.size);
+                            let unreadCount = 0;
+                            announcementsList.innerHTML = '';
+                            const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                if (!matchesAudienceField(data.targetAudience || data.targetType, userRole, uid, data.targetIds)) return;
+                                const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
+                                if (!isRead) unreadCount++;
+                                const card = document.createElement('div');
+                                card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
+                                card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
+                                card.innerHTML = `
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                                        <div style="flex:1;">
+                                            <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
+                                            <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
+                                            <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : ''}</div>
+                                        </div>
+                                        ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${doc.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
+                                    </div>
+                                `;
+                                announcementsList.appendChild(card);
+                            });
+                            const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
+                            badgeEls.forEach(badge => {
+                                if (unreadCount > 0) {
+                                    badge.style.display = '';
+                                    badge.textContent = unreadCount;
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            });
+                        }, (err) => console.error('[Announcements] fallback onSnapshot failed', err));
+                    });
+                } catch (ex) {
+                    console.error('[Announcements] indexed query setup failed, falling back:', ex);
+                    col.where('isActive', '==', true).orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                        console.log('[Announcements] fallback snapshot received, docs:', snapshot.size);
+                        let unreadCount = 0;
+                        announcementsList.innerHTML = '';
+                        const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (!matchesAudienceField(data.targetAudience || data.targetType, userRole, uid, data.targetIds)) return;
+                            const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
+                            if (!isRead) unreadCount++;
+                            const card = document.createElement('div');
+                            card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
+                            card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
+                            card.innerHTML = `
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
+                                        <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
+                                        <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : ''}</div>
+                                    </div>
+                                    ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${doc.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
+                                </div>
+                            `;
+                            announcementsList.appendChild(card);
+                        });
+                        const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
+                        badgeEls.forEach(badge => {
+                            if (unreadCount > 0) {
+                                badge.style.display = '';
+                                badge.textContent = unreadCount;
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        });
+                    }, (err) => console.error('[Announcements] fallback onSnapshot failed', err));
+                }
+
+                // Manual Refresh button
+                const refreshBtn = document.getElementById('refreshAnnouncementsBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', async () => {
+                        try {
+                            console.log('[Announcements] manual refresh triggered');
+                            const snap = await col
+                                .where('isActive', '==', true)
+                                .where('targetAudience', 'in', [userRole, 'all'])
+                                .orderBy('createdAt', 'desc')
+                                .get();
+                            console.log('[Announcements] manual refresh docs:', snap.size);
+                        } catch (err) {
+                            console.error('[Announcements] manual refresh failed', err);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('[Announcements] setup failed', err);
+            }
+        })();
+    });
+    // Mark-as-read button handler (event delegation)
+    const announcementsList = document.getElementById('agentAnnouncementsList') || document.getElementById('announcements-list');
+    if (announcementsList) {
         announcementsList.addEventListener('click', async function (e) {
             if (e.target && e.target.classList.contains('mark-announcement-read')) {
                 const annId = e.target.getAttribute('data-announcement-id');
                 if (!annId) return;
+                const user = firebase.auth().currentUser;
+                if (!user) return;
+                const uid = user.uid;
                 // Atomically add to readAnnouncements array
                 await firebase.firestore().collection('users').doc(uid).update({
                     readAnnouncements: firebase.firestore.FieldValue.arrayUnion(annId)
-                });
+                }).catch(err => console.error('Mark announcement read failed', err));
             }
         });
-    });
-    listenToAgentAnnouncements();
+    }
 });
+listenToAgentAnnouncements();
 
 document.addEventListener('DOMContentLoaded', async function () {
     // Check if user is logged in and fetch agent data

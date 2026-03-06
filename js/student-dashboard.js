@@ -255,223 +255,362 @@ document.addEventListener('DOMContentLoaded', function () {
     // ===== REAL-TIME ANNOUNCEMENTS LIST (MAIN SECTION) =====
     firebase.auth().onAuthStateChanged(function (user) {
         if (!user) return;
-        const uid = user.uid;
-        const announcementsList = document.getElementById('studentAnnouncementsList');
-        if (!announcementsList) return;
-        // Listen for announcements (global, role, or targeted to this user) within last 30 days
-        const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        firebase.firestore().collection('announcements')
-            .where('timestamp', '>=', thirtyDaysAgo)
-            .onSnapshot(async function (snapshot) {
-                let unreadCount = 0;
-                announcementsList.innerHTML = '';
-                const userReadRef = firebase.firestore().collection('users').doc(uid);
-                // Fetch user's read announcements
-                const userDoc = await userReadRef.get();
-                const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Show if targetType is 'general', matches user role, or includes user UID
-                    const userRole = user.role || (userDoc.exists ? userDoc.data().role : 'student');
-                    const show = (
-                        data.targetType === 'general' ||
-                        data.targetType === userRole ||
-                        (Array.isArray(data.targetIds) && data.targetIds.includes(uid))
-                    );
-                    if (show) {
-                        const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
-                        if (!isRead) unreadCount++;
-                        const card = document.createElement('div');
-                        card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
-                        card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
-                        card.innerHTML = `
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
-                                <div style="flex:1;">
-                                    <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
-                                    <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
-                                    <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.timestamp && data.timestamp.toDate ? data.timestamp.toDate().toLocaleString() : ''}</div>
+        (async () => {
+            try {
+                const uid = user.uid;
+                const announcementsList = document.getElementById('studentAnnouncementsList');
+                if (!announcementsList) return;
+                // Fetch user role
+                const userDoc = await firebase.firestore().collection('users').doc(uid).get();
+                const userRole = (userDoc.exists && userDoc.data().role) ? userDoc.data().role : 'student';
+                console.log('[Announcements] current user:', uid, 'role:', userRole);
+
+                const col = firebase.firestore().collection('announcements');
+
+                function normalizeRoleKey(r) {
+                    if (!r) return r;
+                    r = r.toString().toLowerCase();
+                    if (r === 'student') return 'students';
+                    if (r === 'agent') return 'agents';
+                    return r;
+                }
+
+                function matchesAudienceField(aField, userRoleKey, uid, targetIds) {
+                    const ta = (aField || '').toString().toLowerCase();
+                    const roleKey = normalizeRoleKey(userRoleKey);
+                    if (ta === 'all' || ta === 'general') return true;
+                    if (ta === roleKey || ta === userRoleKey) return true;
+                    if (ta === 'individual' && Array.isArray(targetIds) && targetIds.includes(uid)) return true;
+                    return false;
+                }
+
+                console.log('[Announcements] preparing query for role:', userRole);
+
+                // Try an indexed 'in' query first; if it fails (index required), fall back to client-side filtering
+                try {
+                    const query = col
+                        .where('isActive', '==', true)
+                        .where('targetAudience', 'in', [userRole, 'all'])
+                        .orderBy('createdAt', 'desc');
+
+                    query.onSnapshot(async (snapshot) => {
+                        console.log('[Announcements] snapshot received, docs:', snapshot.size);
+                        let unreadCount = 0;
+                        announcementsList.innerHTML = '';
+                        // populate global announcements array from snapshot
+                        announcements = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        console.log('[Announcements] announcements array updated, count:', announcements.length);
+                        const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
+                        announcements.forEach(item => {
+                            const data = item;
+                            const isRead = readAnnouncements && readAnnouncements.includes(item.id);
+                            if (!isRead) unreadCount++;
+                            const card = document.createElement('div');
+                            card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
+                            card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
+                            card.innerHTML = `
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
+                                        <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
+                                        <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : ''}</div>
+                                    </div>
+                                    ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${item.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
                                 </div>
-                                ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${doc.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
-                            </div>
-                        `;
-                        announcementsList.appendChild(card);
-                    }
-                });
-                // Update badge in card header
-                const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
-                badgeEls.forEach(badge => {
-                    if (unreadCount > 0) {
-                        badge.style.display = '';
-                        badge.textContent = unreadCount;
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                });
-            });
-        // Mark-as-read button handler (event delegation)
+                            `;
+                            announcementsList.appendChild(card);
+                        });
+                        // Update badge in card header
+                        const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
+                        badgeEls.forEach(badge => {
+                            if (unreadCount > 0) {
+                                badge.style.display = '';
+                                badge.textContent = unreadCount;
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        });
+                    }, (error) => {
+                        console.error('[Announcements] onSnapshot error (indexed query):', error);
+                        // Fallback to client-side filtering
+                        col.where('isActive', '==', true).orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                            console.log('[Announcements] fallback snapshot received, docs:', snapshot.size);
+                            let unreadCount = 0;
+                            announcementsList.innerHTML = '';
+                            // Build announcements array from snapshot then filter
+                            const fetched = [];
+                            const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
+                            snapshot.forEach(doc => {
+                                const data = doc.data();
+                                if (!matchesAudienceField(data.targetAudience || data.targetType, userRole, uid, data.targetIds)) return;
+                                fetched.push({ id: doc.id, ...data });
+                            });
+                            announcements = fetched;
+                            console.log('[Announcements] announcements array updated (fallback), count:', announcements.length);
+                            announcements.forEach(item => {
+                                const isRead = readAnnouncements && readAnnouncements.includes(item.id);
+                                if (!isRead) unreadCount++;
+                                const card = document.createElement('div');
+                                card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
+                                card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
+                                card.innerHTML = `
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                                        <div style="flex:1;">
+                                            <div style="font-weight:600;font-size:1.05em;">${item.title || 'Announcement'}</div>
+                                            <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${item.content || ''}</div>
+                                            <div style="color:#888;font-size:0.85em;margin-top:6px;">${item.createdAt && item.createdAt.toDate ? item.createdAt.toDate().toLocaleString() : ''}</div>
+                                        </div>
+                                        ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${item.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
+                                    </div>
+                                `;
+                                announcementsList.appendChild(card);
+                            });
+                            const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
+                            badgeEls.forEach(badge => {
+                                if (unreadCount > 0) {
+                                    badge.style.display = '';
+                                    badge.textContent = unreadCount;
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            });
+                        }, (err) => console.error('[Announcements] fallback onSnapshot failed', err));
+                    });
+                } catch (ex) {
+                    console.error('[Announcements] indexed query setup failed, falling back:', ex);
+                    // Fallback to client-side filtering
+                    col.where('isActive', '==', true).orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                        console.log('[Announcements] fallback snapshot received, docs:', snapshot.size);
+                        let unreadCount = 0;
+                        announcementsList.innerHTML = '';
+                        const readAnnouncements = (userDoc.exists && userDoc.data().readAnnouncements) ? userDoc.data().readAnnouncements : [];
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (!matchesAudienceField(data.targetAudience || data.targetType, userRole, uid, data.targetIds)) return;
+                            const isRead = readAnnouncements && readAnnouncements.includes(doc.id);
+                            if (!isRead) unreadCount++;
+                            const card = document.createElement('div');
+                            card.className = 'announcement-item' + (isRead ? ' read' : ' unread');
+                            card.style = 'background:#f8f9ff;padding:16px;border-radius:8px;margin-bottom:12px;box-shadow:0 2px 8px #e1e5ee;position:relative;';
+                            card.innerHTML = `
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <i class="fas fa-bullhorn" style="color:var(--primary);"></i>
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;font-size:1.05em;">${data.title || 'Announcement'}</div>
+                                        <div style="color:var(--gray);font-size:0.97em;margin-top:2px;">${data.content || ''}</div>
+                                        <div style="color:#888;font-size:0.85em;margin-top:6px;">${data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : ''}</div>
+                                    </div>
+                                    ${!isRead ? `<button class="btn-secondary mark-announcement-read" data-announcement-id="${doc.id}" style="margin-left:10px;">Mark as Read</button>` : `<span style='color:#28a745;font-size:0.9em;margin-left:10px;'><i class='fas fa-check-circle'></i> Read</span>`}
+                                </div>
+                            `;
+                            announcementsList.appendChild(card);
+                        });
+                        const badgeEls = document.querySelectorAll('#announcementsCard .announcement-badge, .announcement-bell .announcement-badge');
+                        badgeEls.forEach(badge => {
+                            if (unreadCount > 0) {
+                                badge.style.display = '';
+                                badge.textContent = unreadCount;
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        });
+                    }, (err) => console.error('[Announcements] fallback onSnapshot failed', err));
+                }
+
+                // Manual Refresh button
+                const refreshBtn = document.getElementById('refreshAnnouncementsBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', async () => {
+                        try {
+                            console.log('[Announcements] manual refresh triggered');
+                            const snap = await col
+                                .where('isActive', '==', true)
+                                .where('targetAudience', 'in', [userRole, 'all'])
+                                .orderBy('createdAt', 'desc')
+                                .get();
+                            console.log('[Announcements] manual refresh docs:', snap.size);
+                        } catch (err) {
+                            console.error('[Announcements] manual refresh failed', err);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('[Announcements] setup failed', err);
+            }
+        })();
+    });
+    // Mark-as-read button handler (event delegation)
+    const announcementsList = document.getElementById('studentAnnouncementsList') || document.getElementById('announcements-list');
+    if (announcementsList) {
         announcementsList.addEventListener('click', async function (e) {
             if (e.target && e.target.classList.contains('mark-announcement-read')) {
                 const annId = e.target.getAttribute('data-announcement-id');
                 if (!annId) return;
-                // Atomically add to readAnnouncements array
-                await firebase.firestore().collection('users').doc(uid).update({
-                    readAnnouncements: firebase.firestore.FieldValue.arrayUnion(annId)
-                });
+                const user = firebase.auth().currentUser;
+                if (!user) return;
+                const uid = user.uid;
+                // Atomically add to user's readAnnouncements array and announcement's readBy
+                const userRef = firebase.firestore().collection('users').doc(uid);
+                const annRef = firebase.firestore().collection('announcements').doc(annId);
+                await Promise.all([
+                    userRef.update({ readAnnouncements: firebase.firestore.FieldValue.arrayUnion(annId) }),
+                    annRef.update({ readBy: firebase.firestore.FieldValue.arrayUnion(uid) })
+                ]).catch(err => console.error('Mark announcement read failed', err));
             }
         });
-    });
-    // Delegate click for dynamically rendered agent cards
-    document.body.addEventListener('click', function (e) {
-        if (e.target && e.target.classList.contains('check-status-btn')) {
-            // Find the agent card (application-item)
-            const card = e.target.closest('.agent-card.application-item');
-            const detailsDiv = card.querySelector('.application-status-details');
-            if (!detailsDiv) return;
-            // Toggle visibility
-            if (detailsDiv.style.display === 'none' || !detailsDiv.style.display) {
-                detailsDiv.style.display = 'block';
-                e.target.textContent = 'Hide Application Status';
-                // Get agentId from card
-                const agentId = card.dataset.agentId;
-                // Get current user
-                firebase.auth().onAuthStateChanged(function (user) {
-                    if (!user || !agentId) return;
-                    // Listen to activeApplications for this student and agent
-                    if (detailsDiv._unsubscribe) detailsDiv._unsubscribe(); // Remove previous listener if any
-                    detailsDiv.innerHTML = '<div style="color:var(--gray);padding:10px;">Loading status...</div>';
-                    detailsDiv._unsubscribe = firebase.firestore().collection('activeApplications')
-                        .where('studentId', '==', user.uid)
-                        .where('agentId', '==', agentId)
-                        .onSnapshot(snapshot => {
-                            if (snapshot.empty) {
-                                detailsDiv.innerHTML = '<div style="color:var(--gray);padding:10px;">No status found for this application.</div>';
+    }
+});
+// Delegate click for dynamically rendered agent cards
+document.body.addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains('check-status-btn')) {
+        // Find the agent card (application-item)
+        const card = e.target.closest('.agent-card.application-item');
+        const detailsDiv = card.querySelector('.application-status-details');
+        if (!detailsDiv) return;
+        // Toggle visibility
+        if (detailsDiv.style.display === 'none' || !detailsDiv.style.display) {
+            detailsDiv.style.display = 'block';
+            e.target.textContent = 'Hide Application Status';
+            // Get agentId from card
+            const agentId = card.dataset.agentId;
+            // Get current user
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (!user || !agentId) return;
+                // Listen to activeApplications for this student and agent
+                if (detailsDiv._unsubscribe) detailsDiv._unsubscribe(); // Remove previous listener if any
+                detailsDiv.innerHTML = '<div style="color:var(--gray);padding:10px;">Loading status...</div>';
+                detailsDiv._unsubscribe = firebase.firestore().collection('activeApplications')
+                    .where('studentId', '==', user.uid)
+                    .where('agentId', '==', agentId)
+                    .onSnapshot(snapshot => {
+                        if (snapshot.empty) {
+                            detailsDiv.innerHTML = '<div style="color:var(--gray);padding:10px;">No status found for this application.</div>';
+                            return;
+                        }
+                        // Use applicationTrackingTemplate for display
+                        const template = document.getElementById('applicationTrackingTemplate');
+                        detailsDiv.innerHTML = '';
+                        // Iterate docs but skip cancelled applications
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data && data.applicationStage === 'cancelled') return;
+                            if (!template) {
+                                detailsDiv.innerHTML += `<div style="padding:10px 0;">No template found.</div>`;
                                 return;
                             }
-                            // Use applicationTrackingTemplate for display
-                            const template = document.getElementById('applicationTrackingTemplate');
-                            detailsDiv.innerHTML = '';
-                            // Iterate docs but skip cancelled applications
-                            snapshot.forEach(doc => {
-                                const data = doc.data();
-                                if (data && data.applicationStage === 'cancelled') return;
-                                if (!template) {
-                                    detailsDiv.innerHTML += `<div style="padding:10px 0;">No template found.</div>`;
-                                    return;
-                                }
-                                // Clone template
-                                const clone = template.content.cloneNode(true);
-                                // Fill in fields
-                                const uni = clone.querySelector('.app-university');
-                                if (uni) uni.textContent = data.universityName || 'University';
-                                const prog = clone.querySelector('.app-program');
-                                if (prog) prog.textContent = 'Program: ' + (data.programName || 'N/A');
-                                const badge = clone.querySelector('.app-status-badge');
-                                if (badge) badge.textContent = data.applicationStage ? capitalizeStatus(data.applicationStage) : 'N/A';
-                                // Progress bar and percent based on applicationStage
-                                const progressData = getApplicationProgress(data.applicationStage);
-                                const percent = clone.querySelector('.app-progress-percent');
-                                if (percent) percent.textContent = progressData.percent + '%';
-                                const bar = clone.querySelector('.app-progress-bar');
-                                if (bar) {
-                                    bar.style.width = progressData.percent + '%';
-                                    bar.style.background = progressData.color;
-                                }
-                                // Timeline and dates (customize as needed)
-                                // Example: set submitted date
-                                const submitted = clone.querySelector('.app-submitted-date');
-                                if (submitted) submitted.textContent = data.submittedAt ? formatDate(data.submittedAt) : 'N/A';
+                            // Clone template
+                            const clone = template.content.cloneNode(true);
+                            // Fill in fields
+                            const uni = clone.querySelector('.app-university');
+                            if (uni) uni.textContent = data.universityName || 'University';
+                            const prog = clone.querySelector('.app-program');
+                            if (prog) prog.textContent = 'Program: ' + (data.programName || 'N/A');
+                            const badge = clone.querySelector('.app-status-badge');
+                            if (badge) badge.textContent = data.applicationStage ? capitalizeStatus(data.applicationStage) : 'N/A';
+                            // Progress bar and percent based on applicationStage
+                            const progressData = getApplicationProgress(data.applicationStage);
+                            const percent = clone.querySelector('.app-progress-percent');
+                            if (percent) percent.textContent = progressData.percent + '%';
+                            const bar = clone.querySelector('.app-progress-bar');
+                            if (bar) {
+                                bar.style.width = progressData.percent + '%';
+                                bar.style.background = progressData.color;
+                            }
+                            // Timeline and dates (customize as needed)
+                            // Example: set submitted date
+                            const submitted = clone.querySelector('.app-submitted-date');
+                            if (submitted) submitted.textContent = data.submittedAt ? formatDate(data.submittedAt) : 'N/A';
 
-                                // === Stage-specific requirements/guidelines ===
-                                const requirementsDiv = document.createElement('div');
-                                requirementsDiv.className = 'stage-requirements';
-                                requirementsDiv.style.margin = '20px 0 0 0';
+                            // === Stage-specific requirements/guidelines ===
+                            const requirementsDiv = document.createElement('div');
+                            requirementsDiv.className = 'stage-requirements';
+                            requirementsDiv.style.margin = '20px 0 0 0';
 
-                                // Stage requirements mapping
-                                const stageRequirements = {
-                                    started: async () => {
-                                        // Fetch agent info
-                                        let agentInfoHtml = '<div style="color:var(--primary);font-weight:600;">Contact your assigned agent for next steps:</div>';
-                                        if (data.agentId) {
-                                            try {
-                                                const agentDoc = await firebase.firestore().collection('agents').doc(data.agentId).get();
-                                                if (agentDoc.exists) {
-                                                    const agent = agentDoc.data();
-                                                    agentInfoHtml += `<div style="margin-top:10px;">
+                            // Stage requirements mapping
+                            const stageRequirements = {
+                                started: async () => {
+                                    // Fetch agent info
+                                    let agentInfoHtml = '<div style="color:var(--primary);font-weight:600;">Contact your assigned agent for next steps:</div>';
+                                    if (data.agentId) {
+                                        try {
+                                            const agentDoc = await firebase.firestore().collection('agents').doc(data.agentId).get();
+                                            if (agentDoc.exists) {
+                                                const agent = agentDoc.data();
+                                                agentInfoHtml += `<div style="margin-top:10px;">
                                                         <div><strong>Name:</strong> ${agent.firstName || ''} ${agent.lastName || ''}</div>
                                                         <div><strong>Email:</strong> <a href='mailto:${agent.email}'>${agent.email}</a></div>
                                                         <div><strong>Phone:</strong> <a href='tel:${agent.phone}'>${agent.phone}</a></div>
                                                     </div>`;
-                                                }
-                                            } catch (e) { agentInfoHtml += '<div style="color:red;">Unable to load agent info.</div>'; }
-                                        }
-                                        requirementsDiv.innerHTML = agentInfoHtml;
-                                    },
-                                    documents: () => {
-                                        // Document checklist
-                                        const docList = [
-                                            'Passport',
-                                            'Physical examination report',
-                                            'Passport size picture',
-                                            '1-2 scanned copies of letters of recommendation',
-                                            'Certificate of highest academic degree',
-                                            'Transcript of highest educational level',
-                                            'Proof of no criminal record (within 6 months)',
-                                            'Certificate of your English proficiency or Chinese proficiency',
-                                            'One minute self-introduction video in English or Chinese'
-                                        ];
-                                        let checklistHtml = `<div style="color:var(--primary);font-weight:600;">To proceed, We will need these documents</div>`;
-                                        checklistHtml += '<ul style="margin:10px 0 0 18px;list-style:none;padding:0;">';
-                                        docList.forEach((doc, idx) => {
-                                            checklistHtml += `<li style="margin-bottom:8px;display:flex;align-items:center;"><input type="checkbox" class="doc-check" id="doc-check-${idx}" style="margin-right:8px;"> <label for="doc-check-${idx}" style="margin:0;">${doc}</label></li>`;
-                                        });
-                                        checklistHtml += '</ul>';
-                                        checklistHtml += `<div style="margin-top:14px;">Do you have all of them? <br>If no, please let us know which one is missing. We can help you arrange those missing documents. <span style="color:var(--primary);font-weight:600;">Contact your agent for guidance on getting the document.</span></div>`;
-                                        requirementsDiv.innerHTML = checklistHtml;
-                                    },
-                                    submitted: () => {
-                                        requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Application Submitted</div><div style="margin-top:10px;">Your application has been submitted. Estimated review time: 5-10 business days. You will be notified by email once a decision is made.</div>`;
-                                    },
-                                    interview: () => {
-                                        requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Interview Preparation</div><ul style="margin:10px 0 0 18px;"><li>Review your submitted documents</li><li>Prepare answers for common questions (motivation, goals, etc.)</li><li>Check your email for interview scheduling details</li></ul>`;
-                                    },
-                                    offer: () => {
-                                        requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Offer Received</div><div style="margin-top:10px;">Congratulations! Please review your offer letter, accept or decline by the stated deadline, and follow the next steps provided in your email.</div>`;
-                                    },
-                                    completed: () => {
-                                        requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Enrollment Complete</div><div style="margin-top:10px;">Congratulations on completing your application! Please check your email for final enrollment instructions and next steps.</div>`;
-                                    },
-                                    rejected: () => {
-                                        requirementsDiv.innerHTML = `<div style="color:#dc3545;font-weight:600;">Application Not Successful</div><div style="margin-top:10px;">Unfortunately, your application was not successful. Please contact your agent for feedback or to discuss other opportunities.</div>`;
+                                            }
+                                        } catch (e) { agentInfoHtml += '<div style="color:red;">Unable to load agent info.</div>'; }
                                     }
-                                };
+                                    requirementsDiv.innerHTML = agentInfoHtml;
+                                },
+                                documents: () => {
+                                    // Document checklist
+                                    const docList = [
+                                        'Passport',
+                                        'Physical examination report',
+                                        'Passport size picture',
+                                        '1-2 scanned copies of letters of recommendation',
+                                        'Certificate of highest academic degree',
+                                        'Transcript of highest educational level',
+                                        'Proof of no criminal record (within 6 months)',
+                                        'Certificate of your English proficiency or Chinese proficiency',
+                                        'One minute self-introduction video in English or Chinese'
+                                    ];
+                                    let checklistHtml = `<div style="color:var(--primary);font-weight:600;">To proceed, We will need these documents</div>`;
+                                    checklistHtml += '<ul style="margin:10px 0 0 18px;list-style:none;padding:0;">';
+                                    docList.forEach((doc, idx) => {
+                                        checklistHtml += `<li style="margin-bottom:8px;display:flex;align-items:center;"><input type="checkbox" class="doc-check" id="doc-check-${idx}" style="margin-right:8px;"> <label for="doc-check-${idx}" style="margin:0;">${doc}</label></li>`;
+                                    });
+                                    checklistHtml += '</ul>';
+                                    checklistHtml += `<div style="margin-top:14px;">Do you have all of them? <br>If no, please let us know which one is missing. We can help you arrange those missing documents. <span style="color:var(--primary);font-weight:600;">Contact your agent for guidance on getting the document.</span></div>`;
+                                    requirementsDiv.innerHTML = checklistHtml;
+                                },
+                                submitted: () => {
+                                    requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Application Submitted</div><div style="margin-top:10px;">Your application has been submitted. Estimated review time: 5-10 business days. You will be notified by email once a decision is made.</div>`;
+                                },
+                                interview: () => {
+                                    requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Interview Preparation</div><ul style="margin:10px 0 0 18px;"><li>Review your submitted documents</li><li>Prepare answers for common questions (motivation, goals, etc.)</li><li>Check your email for interview scheduling details</li></ul>`;
+                                },
+                                offer: () => {
+                                    requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Offer Received</div><div style="margin-top:10px;">Congratulations! Please review your offer letter, accept or decline by the stated deadline, and follow the next steps provided in your email.</div>`;
+                                },
+                                completed: () => {
+                                    requirementsDiv.innerHTML = `<div style="color:var(--primary);font-weight:600;">Enrollment Complete</div><div style="margin-top:10px;">Congratulations on completing your application! Please check your email for final enrollment instructions and next steps.</div>`;
+                                },
+                                rejected: () => {
+                                    requirementsDiv.innerHTML = `<div style="color:#dc3545;font-weight:600;">Application Not Successful</div><div style="margin-top:10px;">Unfortunately, your application was not successful. Please contact your agent for feedback or to discuss other opportunities.</div>`;
+                                }
+                            };
 
-                                // Show requirements/guidelines for current stage
-                                const stageKey = (data.applicationStage || '').toLowerCase();
-                                if (stageRequirements[stageKey]) {
-                                    const req = stageRequirements[stageKey];
-                                    if (typeof req === 'function') {
-                                        const result = req();
-                                        if (result instanceof Promise) {
-                                            result.then(() => detailsDiv.appendChild(requirementsDiv));
-                                        } else {
-                                            detailsDiv.appendChild(requirementsDiv);
-                                        }
+                            // Show requirements/guidelines for current stage
+                            const stageKey = (data.applicationStage || '').toLowerCase();
+                            if (stageRequirements[stageKey]) {
+                                const req = stageRequirements[stageKey];
+                                if (typeof req === 'function') {
+                                    const result = req();
+                                    if (result instanceof Promise) {
+                                        result.then(() => detailsDiv.appendChild(requirementsDiv));
+                                    } else {
+                                        detailsDiv.appendChild(requirementsDiv);
                                     }
                                 }
-                                // Optionally, update timeline steps, etc.
-                                detailsDiv.appendChild(clone);
-                            });
+                            }
+                            // Optionally, update timeline steps, etc.
+                            detailsDiv.appendChild(clone);
                         });
-                });
-            } else {
-                detailsDiv.style.display = 'none';
-                e.target.textContent = 'Check Application Status';
-                if (detailsDiv._unsubscribe) detailsDiv._unsubscribe();
-            }
+                    });
+            });
+        } else {
+            detailsDiv.style.display = 'none';
+            e.target.textContent = 'Check Application Status';
+            if (detailsDiv._unsubscribe) detailsDiv._unsubscribe();
         }
-    });
+    }
 });
 // ===== NOTIFICATION DROPDOWN LOGIC =====
 let notifications = [];
@@ -612,115 +751,7 @@ function setupNotificationRealtimeListener(userId) {
         });
 }
 
-// === REAL-TIME ANNOUNCEMENTS LISTENER ===
-let announcements = [];
-let announcementUnsubscribe = null;
-let unreadAnnouncements = 0;
-
-function listenToStudentAnnouncements() {
-    if (announcementUnsubscribe) announcementUnsubscribe();
-    firebase.auth().onAuthStateChanged(function (user) {
-        if (!user) return;
-        // Listen for announcements targeted to all, students, or this user
-        announcementUnsubscribe = firebase.firestore().collection('announcements')
-            .orderBy('timestamp', 'desc')
-            .onSnapshot(snapshot => {
-                announcements = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(a =>
-                        a.targetType === 'general' ||
-                        a.targetType === 'student' ||
-                        (a.targetType === 'individual' && (a.targetIds || []).includes(user.uid))
-                    );
-                // Count unread
-                unreadAnnouncements = announcements.filter(a => !(a.readBy || []).includes(user.uid)).length;
-                // Update badge
-                document.querySelectorAll('.announcement-badge').forEach(el => {
-                    el.textContent = unreadAnnouncements > 0 ? unreadAnnouncements : '';
-                    el.style.display = unreadAnnouncements > 0 ? 'inline-block' : 'none';
-                });
-                renderAnnouncementsDropdown();
-            });
-    });
-}
-
-let announcementsDropdown = null;
-function renderAnnouncementsDropdown() {
-    if (!announcementsDropdown) {
-        announcementsDropdown = document.createElement('div');
-        announcementsDropdown.className = 'announcements-dropdown';
-        announcementsDropdown.style.position = 'absolute';
-        announcementsDropdown.style.top = '48px';
-        announcementsDropdown.style.right = '0';
-        announcementsDropdown.style.background = '#fff';
-        announcementsDropdown.style.boxShadow = '0 8px 32px rgba(44,62,80,0.15)';
-        announcementsDropdown.style.borderRadius = '10px';
-        announcementsDropdown.style.minWidth = '320px';
-        announcementsDropdown.style.maxWidth = '95vw';
-        announcementsDropdown.style.zIndex = '9999';
-        announcementsDropdown.style.padding = '0.5em 0';
-        announcementsDropdown.style.display = 'none';
-        document.body.appendChild(announcementsDropdown);
-    }
-    let html = '';
-    if (!announcements.length) {
-        html = '<div style="padding: 1.2em; color: var(--gray); text-align: center;">No announcements yet.</div>';
-    } else {
-        announcements.slice(0, 10).forEach(a => {
-            const isUnread = !(a.readBy || []).includes(firebase.auth().currentUser?.uid);
-            html += `<div class="announcement-item${isUnread ? ' unread' : ''}" style="padding: 1em 1.5em; border-bottom: 1px solid #f0f0f0; background: ${isUnread ? '#f5f7ff' : '#fff'}; cursor: pointer; display: flex; align-items: flex-start; gap: 10px;">
-                <i class="fas fa-bullhorn" style="color: ${isUnread ? 'var(--primary)' : 'var(--gray)'}; margin-top: 2px;"></i>
-                <div style="flex:1;">
-                    <div style="font-weight:600; color:${isUnread ? 'var(--primary)' : 'var(--gray)'};">${a.title || 'Announcement'}</div>
-                    <div style="font-size:0.97em; color:var(--dark);">${a.content || ''}</div>
-                    <div style="font-size:0.85em; color:var(--gray); margin-top:2px;">${a.timestamp && a.timestamp.seconds ? new Date(a.timestamp.seconds * 1000).toLocaleString() : ''}</div>
-                    ${a.attachmentUrl ? `<div style='margin-top:8px;'><a href='${a.attachmentUrl}' target='_blank'>View Attachment</a></div>` : ''}
-                </div>
-            </div>`;
-        });
-    }
-    announcementsDropdown.innerHTML = html;
-}
-
-function showAnnouncementsDropdown() {
-    renderAnnouncementsDropdown();
-    announcementsDropdown.style.display = 'block';
-    // Mark all as read in Firestore
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-    announcements.filter(a => !(a.readBy || []).includes(user.uid)).forEach(a => {
-        firebase.firestore().collection('announcements').doc(a.id).update({
-            readBy: firebase.firestore.FieldValue.arrayUnion(user.uid)
-        });
-    });
-    // Hide badge
-    document.querySelectorAll('.announcement-badge').forEach(el => {
-        el.textContent = '';
-        el.style.display = 'none';
-    });
-}
-function hideAnnouncementsDropdown() {
-    if (announcementsDropdown) announcementsDropdown.style.display = 'none';
-}
-document.addEventListener('click', function (e) {
-    if (announcementsDropdown && !announcementsDropdown.contains(e.target) && !e.target.closest('.announcement-bell')) {
-        hideAnnouncementsDropdown();
-    }
-});
-document.body.addEventListener('click', function (e) {
-    if (e.target.closest('.announcement-bell')) {
-        if (announcementsDropdown && announcementsDropdown.style.display === 'block') {
-            hideAnnouncementsDropdown();
-        } else {
-            showAnnouncementsDropdown();
-        }
-    }
-});
-
-// Start listening on load
-document.addEventListener('DOMContentLoaded', function () {
-    listenToStudentAnnouncements();
-});
+// Announcements are handled by js/announcements-view.js (shared viewer)
 
 document.addEventListener('DOMContentLoaded', async function () {
     // Application Status button logic
