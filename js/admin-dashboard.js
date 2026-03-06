@@ -821,12 +821,13 @@ window.openAssignAgentModal = function (studentId) {
     selectedAgentId = null;
     const modal = document.getElementById('assignAgentModal');
     const list = document.getElementById('agentSelectList');
-    if (list) list.innerHTML = allAgents.map(agent =>
-        `<div style='display:flex;align-items:center;gap:10px;margin-bottom:10px;'>
-            <input type='radio' name='assignAgentRadio' value='${agent.uid}' id='agent-${agent.uid}'>
-            <label for='agent-${agent.uid}' style='flex:1;cursor:pointer;'>${agent.firstName} ${agent.lastName} (${agent.email})</label>
-        </div>`
-    ).join('');
+    if (list) list.innerHTML = allAgents.map(agent => {
+        const aid = agent.id || agent.uid || '';
+        return `<div style='display:flex;align-items:center;gap:10px;margin-bottom:10px;'>
+            <input type='radio' name='assignAgentRadio' value='${aid}' id='agent-${aid}'>
+            <label for='agent-${aid}' style='flex:1;cursor:pointer;'>${agent.firstName} ${agent.lastName} (${agent.email})</label>
+        </div>`;
+    }).join('');
     if (modal) modal.style.display = 'flex';
     const assignAgentConfirmBtnEl = document.getElementById('assignAgentConfirmBtn'); if (assignAgentConfirmBtnEl) assignAgentConfirmBtnEl.onclick = handleAssignAgentConfirm;
 }
@@ -852,12 +853,13 @@ window.openAssignStudentModal = function (agentId) {
     const modal = document.getElementById('assignStudentModal');
     const list = document.getElementById('studentSelectList');
     // Only show students (role === 'student')
-    if (list) list.innerHTML = allUsers.filter(u => u.role === 'student').map(student =>
-        `<div style='display:flex;align-items:center;gap:10px;margin-bottom:10px;'>
-            <input type='radio' name='assignStudentRadio' value='${student.uid}' id='student-${student.uid}'>
-            <label for='student-${student.uid}' style='flex:1;cursor:pointer;'>${student.firstName} ${student.lastName} (${student.email})</label>
-        </div>`
-    ).join('');
+    if (list) list.innerHTML = allUsers.filter(u => u.role === 'student').map(student => {
+        const sid = student.uid || student.id || '';
+        return `<div style='display:flex;align-items:center;gap:10px;margin-bottom:10px;'>
+            <input type='radio' name='assignStudentRadio' value='${sid}' id='student-${sid}'>
+            <label for='student-${sid}' style='flex:1;cursor:pointer;'>${student.firstName} ${student.lastName} (${student.email})</label>
+        </div>`;
+    }).join('');
     if (modal) modal.style.display = 'flex';
     const assignStudentConfirmBtnEl = document.getElementById('assignStudentConfirmBtn'); if (assignStudentConfirmBtnEl) assignStudentConfirmBtnEl.onclick = handleAssignStudentConfirm;
 }
@@ -879,29 +881,43 @@ function handleAssignStudentConfirm() {
 async function assignAgentToStudent(agentId, studentId) {
     if (!agentId || !studentId) { alert('Missing agent or student.'); return; }
     try {
+        // Resolve agent document id: prefer direct doc id, fallback to where(uid == agentId)
+        let resolvedAgentId = agentId;
+        try {
+            const direct = await firebase.firestore().collection('agents').doc(agentId).get();
+            if (!direct.exists) {
+                const q = await firebase.firestore().collection('agents').where('uid', '==', agentId).limit(1).get();
+                if (!q.empty) resolvedAgentId = q.docs[0].id;
+            } else resolvedAgentId = direct.id;
+        } catch (e) {
+            console.warn('Agent doc resolution failed, using provided agentId', e);
+        }
+        // Resolve student document id similarly (users collection)
+        let resolvedStudentId = studentId;
+        try {
+            const directS = await firebase.firestore().collection('users').doc(studentId).get();
+            if (!directS.exists) {
+                const q2 = await firebase.firestore().collection('users').where('uid', '==', studentId).limit(1).get();
+                if (!q2.empty) resolvedStudentId = q2.docs[0].id;
+            } else resolvedStudentId = directS.id;
+        } catch (e) {
+            console.warn('Student doc resolution failed, using provided studentId', e);
+        }
         // Check for existing assignment (pending or accepted) in either direction
         const existingQuery = await firebase.firestore().collection('assignments')
-            .where('agentId', '==', agentId)
-            .where('studentId', '==', studentId)
+            .where('agentId', '==', resolvedAgentId)
+            .where('studentId', '==', resolvedStudentId)
             .where('status', 'in', ['pending', 'accepted'])
             .get();
         if (!existingQuery.empty) {
             alert('Assignment already exists!');
             return;
         }
-        // Also check if this student is already assigned to any agent (enforce one-to-one)
-        const studentActiveQuery = await firebase.firestore().collection('assignments')
-            .where('studentId', '==', studentId)
-            .where('status', 'in', ['pending', 'accepted'])
-            .get();
-        if (!studentActiveQuery.empty) {
-            alert('This student is already assigned to an agent!');
-            return;
-        }
+        // NOTE: Allow multiple agents per student — do not block assignment if student has other assignments.
         // Write to assignments collection
         const assignmentData = {
-            agentId,
-            studentId,
+            agentId: resolvedAgentId,
+            studentId: resolvedStudentId,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             status: 'pending'
         };
@@ -926,9 +942,13 @@ function setupAssignmentRealtimeListeners() {
             agentAssignmentsMap = {};
             studentAssignmentStatusMap = {};
             assignments.forEach(a => {
-                if (a.status === 'accepted') {
+                // Count both pending and accepted assignments towards the agent's total
+                if (a.status === 'accepted' || a.status === 'pending') {
                     if (!agentAssignmentsMap[a.agentId]) agentAssignmentsMap[a.agentId] = [];
                     agentAssignmentsMap[a.agentId].push(a);
+                }
+                // For student listing, consider both pending and accepted as "assigned"
+                if (a.status === 'accepted' || a.status === 'pending') {
                     studentAssignmentStatusMap[a.studentId] = a;
                 }
             });
@@ -936,6 +956,8 @@ function setupAssignmentRealtimeListeners() {
             if (currentSection === 'users') displayUsers(allUsers);
             if (currentSection === 'agents') displayAgents(allAgents);
         });
+    // Debug: expose agent assignment counts in console
+    try { console.debug('agentAssignmentsMap snapshot:', Object.fromEntries(Object.entries(agentAssignmentsMap).map(([k, v]) => [k, v.length]))); } catch (e) { }
 }
 
 // ===== ADMIN DASHBOARD JAVASCRIPT =====
@@ -1484,8 +1506,15 @@ function displayAgents(agents) {
     `;
 
     agents.forEach(agent => {
-        const agentId = agent.uid || agent.id;
-        const assignedStudents = agentAssignmentsMap[agentId] || [];
+        const agentDocId = agent.id || '';
+        const agentAuthUid = agent.uid || '';
+        // Build a combined list of assignments keyed by either doc id or auth uid (avoid double-counting)
+        const listByDoc = agentAssignmentsMap[agentDocId] || [];
+        const listByUid = (agentAuthUid && agentAuthUid !== agentDocId) ? (agentAssignmentsMap[agentAuthUid] || []) : [];
+        const merged = [];
+        const seenIds = new Set();
+        listByDoc.concat(listByUid).forEach(a => { if (a && a.id && !seenIds.has(a.id)) { seenIds.add(a.id); merged.push(a); } });
+        const assignedCount = merged.length;
         html += `
             <tr>
                 <td>${agent.firstName} ${agent.lastName}</td>
@@ -1495,11 +1524,11 @@ function displayAgents(agents) {
                 <td>${agent.country || 'N/A'}</td>
                 <td><span class="status-badge status-${agent.status}">${capitalizeStatus(agent.status)}</span></td>
                 <td>
-                    <button class="btn-small" onclick="viewAgentDetails('${agentId}')">View</button>
-                    <button class="btn-small btn-danger" onclick="removeAgent('${agentId}', '${agent.email}')">Remove</button>
-                    <button class='btn-small btn-primary' onclick='openAssignStudentModal("${agentId}")'>Assign</button>
-                    <span style="margin-left:8px;font-weight:bold;color:#2a7;">${assignedStudents.length} assigned</span>
-                    <button class='btn-small btn-secondary' style='margin-left:8px;' onclick='viewAssignedStudentsModal("${agentId}")'>View Assigned Students</button>
+                    <button class="btn-small" onclick="viewAgentDetails('${agentDocId || agentAuthUid}')">View</button>
+                    <button class="btn-small btn-danger" onclick="removeAgent('${agentDocId || agentAuthUid}', '${agent.email}')">Remove</button>
+                    <button class='btn-small btn-primary' onclick='openAssignStudentModal("${agentDocId || agentAuthUid}")'>Assign</button>
+                    <span style="margin-left:8px;font-weight:bold;color:#2a7;">${assignedCount} assigned</span>
+                    <button class='btn-small btn-secondary' style='margin-left:8px;' onclick='viewAssignedStudentsModal("${agentDocId || agentAuthUid}")'>View Assigned Students</button>
                 </td>
             </tr>
         `;
@@ -2296,46 +2325,91 @@ window.viewAssignedStudentsModal = function (agentId) {
     modalContent.appendChild(listDiv);
     modalBg.appendChild(modalContent);
     document.body.appendChild(modalBg);
+    // Close handler: unsubscribe and remove modal
+    let unsubscribe = null;
+    closeBtn.onclick = () => {
+        if (typeof unsubscribe === 'function') try { unsubscribe(); } catch (e) { /* ignore */ }
+        modalBg.remove();
+    };
 
     // Real-time Firestore listener for assignments for this agent
-    const unsubscribe = firebase.firestore().collection('assignments')
-        .where('agentId', '==', agentId)
-        .where('status', '==', 'accepted')
-        .onSnapshot(async snapshot => {
-            const assignments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Fetch student details for each assignment
-            const studentPromises = assignments.map(async a => {
-                const studentDoc = await firebase.firestore().collection('users').doc(a.studentId).get();
-                if (studentDoc.exists) {
-                    const s = studentDoc.data();
-                    return `<li style='padding:10px 0;border-bottom:1px solid #f0f0f0;display:flex;flex-direction:column;gap:2px;'>
-                        <span style='font-weight:600;'>${s.firstName || ''} ${s.lastName || ''}</span>
-                        <span style='color:#555;font-size:0.97em;'>${s.email}</span>
-                        <span style='color:#aaa;font-size:0.85em;'>ID: ${studentDoc.id}</span>
-                    </li>`;
-                } else {
-                    return `<li style='padding:10px 0;border-bottom:1px solid #f0f0f0;'><span style='font-weight:600;'>${a.studentId}</span></li>`;
+    (async () => {
+        // Try to resolve agent auth uid (some assignments use auth uid, others use agent doc id)
+        let authUid = null;
+        try {
+            const doc = await firebase.firestore().collection('agents').doc(agentId).get();
+            if (doc.exists) authUid = doc.data() && doc.data().uid ? doc.data().uid : null;
+            else {
+                const q = await firebase.firestore().collection('agents').where('uid', '==', agentId).limit(1).get();
+                if (!q.empty) {
+                    authUid = agentId;
+                    // also set agentId to the doc id if needed (we already have the passed agentId)
                 }
-            });
-            const studentList = await Promise.all(studentPromises);
-            let listHtml = '';
-            if (studentList.length === 0) {
-                listHtml = `<p style='color:#888;text-align:center;margin:20px 0;'>No students assigned.</p>`;
-            } else {
-                listHtml = `<ul style='list-style:none;padding:0;margin:0;'>${studentList.join('')}</ul>`;
             }
-            listDiv.innerHTML = listHtml;
-        });
+        } catch (err) {
+            console.warn('Failed to resolve agent uid for assigned students modal', err);
+        }
 
-    // Close modal logic
-    closeBtn.onclick = function () {
+        const keys = [agentId];
+        if (authUid && authUid !== agentId) keys.push(authUid);
+
+        if (keys.length === 1) {
+            unsubscribe = firebase.firestore().collection('assignments')
+                .where('agentId', '==', agentId)
+                .where('status', '==', 'accepted')
+                .onSnapshot(async snapshot => {
+                    const assignments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    // Fetch student details for each assignment
+                    const studentPromises = assignments.map(async a => {
+                        const studentDoc = await firebase.firestore().collection('users').doc(a.studentId).get();
+                        if (studentDoc.exists) {
+                            const s = studentDoc.data();
+                            return `<li style='padding:10px 0;border-bottom:1px solid #f0f0f0;display:flex;flex-direction:column;gap:2px;'>
+                                <span style='font-weight:600;'>${s.firstName || ''} ${s.lastName || ''}</span>
+                                <span style='color:#555;font-size:0.97em;'>${s.email}</span>
+                                <span style='color:#aaa;font-size:0.85em;'>ID: ${studentDoc.id}</span>
+                            </li>`;
+                        } else {
+                            return `<li style='padding:10px 0;border-bottom:1px solid #f0f0f0;'><span style='font-weight:600;'>${a.studentId}</span></li>`;
+                        }
+                    });
+                    const studentList = await Promise.all(studentPromises);
+                    listDiv.innerHTML = `<ul style='list-style:none;padding:0;margin:0;'>${studentList.join('')}</ul>`;
+                });
+        } else {
+            unsubscribe = firebase.firestore().collection('assignments')
+                .where('agentId', 'in', keys)
+                .where('status', '==', 'accepted')
+                .onSnapshot(async snapshot => {
+                    const assignments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const studentPromises = assignments.map(async a => {
+                        const studentDoc = await firebase.firestore().collection('users').doc(a.studentId).get();
+                        if (studentDoc.exists) {
+                            const s = studentDoc.data();
+                            return `<li style='padding:10px 0;border-bottom:1px solid #f0f0f0;display:flex;flex-direction:column;gap:2px;'>
+                                <span style='font-weight:600;'>${s.firstName || ''} ${s.lastName || ''}</span>
+                                <span style='color:#555;font-size:0.97em;'>${s.email}</span>
+                                <span style='color:#aaa;font-size:0.85em;'>ID: ${studentDoc.id}</span>
+                            </li>`;
+                        } else {
+                            return `<li style='padding:10px 0;border-bottom:1px solid #f0f0f0;'><span style='font-weight:600;'>${a.studentId}</span></li>`;
+                        }
+                    });
+                    const studentList = await Promise.all(studentPromises);
+                    listDiv.innerHTML = `<ul style='list-style:none;padding:0;margin:0;'>${studentList.join('')}</ul>`;
+                });
+        }
+    })();
+
+// Close modal logic
+closeBtn.onclick = function () {
+    modalBg.remove();
+    unsubscribe();
+};
+modalBg.addEventListener('click', function (e) {
+    if (e.target === modalBg) {
         modalBg.remove();
         unsubscribe();
-    };
-    modalBg.addEventListener('click', function (e) {
-        if (e.target === modalBg) {
-            modalBg.remove();
-            unsubscribe();
-        }
-    });
+    }
+});
 };

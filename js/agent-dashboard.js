@@ -487,7 +487,9 @@ async function startApplicationForStudent({ studentId, studentName, studentEmail
         showToast('You must be signed in to start an application');
         return;
     }
-    const agentId = user.uid;
+    // Resolve agent document id to store in activeApplications
+    const resolvedAgentId = await resolveAgentDocId(user.uid) || user.uid;
+    const agentId = resolvedAgentId;
     // Disable the start button and show loading state
     setStartButtonState(studentId, { text: 'Starting...', disabled: true });
 
@@ -545,11 +547,12 @@ function setStartButtonState(studentId, { text, disabled }) {
 }
 
 // Helper: sync all Start Application buttons based on activeApplications for current agent
-function updateStartButtonsState() {
+async function updateStartButtonsState() {
     if (!user || !user.uid) return;
+    const resolvedAgentId = await resolveAgentDocId(user.uid) || user.uid;
     document.querySelectorAll('.start-application-btn').forEach(btn => {
         const sid = btn.getAttribute('data-student-id');
-        const exists = activeApplications.some(a => a.studentId === sid && a.agentId === user.uid);
+        const exists = activeApplications.some(a => a.studentId === sid && a.agentId === resolvedAgentId);
         if (exists) {
             setStartButtonState(sid, { text: 'Application Started', disabled: true });
         } else {
@@ -968,7 +971,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
         // Listen to agent document for real-time updates
-        firebase.firestore().collection('agents').doc(authUser.uid).onSnapshot((doc) => {
+        firebase.firestore().collection('agents').doc(authUser.uid).onSnapshot(async (doc) => {
             if (!doc.exists) {
                 showLimitedAgentView();
                 return;
@@ -981,8 +984,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                 // Real-time assigned students: query users where agentAssigned == current agent's uid
                 loadAssignedStudentsRealtime(authUser.uid);
                 // Real-time listener for active applications for this agent
+                const resolvedAgentId = await resolveAgentDocId(authUser.uid) || authUser.uid;
                 firebase.firestore().collection('activeApplications')
-                    .where('agentId', '==', authUser.uid)
+                    .where('agentId', '==', resolvedAgentId)
                     .orderBy('timestamp', 'desc')
                     .onSnapshot(snapshot => {
                         activeApplications = [];
@@ -1007,9 +1011,25 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
     // Real-time assigned students: query users where agentAssigned == current agent's uid
     // Real-time listener for assignments where agentId matches current user ID
-    function loadAssignedStudentsRealtime(agentUid) {
+    async function loadAssignedStudentsRealtime(agentUid) {
+        // Resolve agent document id in 'agents' collection. Some agents use the auth UID as the doc id,
+        // others store auth uid in a `uid` field and have a different doc id. Normalize by trying both.
+        let agentDocId = null;
+        try {
+            const directDoc = await firebase.firestore().collection('agents').doc(agentUid).get();
+            if (directDoc.exists) agentDocId = directDoc.id;
+            else {
+                const q = await firebase.firestore().collection('agents').where('uid', '==', agentUid).limit(1).get();
+                if (!q.empty) agentDocId = q.docs[0].id;
+            }
+        } catch (err) {
+            console.error('Failed to resolve agent doc id for realtime listener', err);
+        }
+
+        const queryAgentId = agentDocId || agentUid;
+
         firebase.firestore().collection('assignments')
-            .where('agentId', '==', agentUid)
+            .where('agentId', '==', queryAgentId)
             .onSnapshot(async snapshot => {
                 const assignments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log('Assignments updated (agent):', assignments);
@@ -1757,6 +1777,35 @@ function showError(element, message) {
     setTimeout(() => {
         element.style.display = 'none';
     }, 5000);
+}
+
+// Cache/resolver for agent document id (agents collection doc id) given auth uid
+let _cachedAgentDocId = null;
+let _cachedAgentAuthUid = null;
+async function resolveAgentDocId(authUid) {
+    if (!authUid) return null;
+    if (_cachedAgentAuthUid === authUid && _cachedAgentDocId) return _cachedAgentDocId;
+    try {
+        const direct = await firebase.firestore().collection('agents').doc(authUid).get();
+        if (direct.exists) {
+            _cachedAgentAuthUid = authUid;
+            _cachedAgentDocId = direct.id;
+            return _cachedAgentDocId;
+        }
+    } catch (e) {
+        console.warn('Direct agent doc check failed', e);
+    }
+    try {
+        const q = await firebase.firestore().collection('agents').where('uid', '==', authUid).limit(1).get();
+        if (!q.empty) {
+            _cachedAgentAuthUid = authUid;
+            _cachedAgentDocId = q.docs[0].id;
+            return _cachedAgentDocId;
+        }
+    } catch (e) {
+        console.warn('Agent lookup by uid failed', e);
+    }
+    return null;
 }
 
 window.acceptAssignment = async function (assignmentId) {
