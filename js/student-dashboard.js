@@ -44,6 +44,13 @@ document.addEventListener('click', function (e) {
     document.querySelectorAll('.agent-actions-dropdown').forEach(d => d.style.display = 'none');
 });
 
+// Helper: escape HTML to prevent injection
+function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, function (s) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[s];
+    });
+}
+
 // Helper to get agentId from card (by searching for email or data attribute)
 function getAgentIdFromCard(card) {
     // Try data-agent-id attribute
@@ -1023,6 +1030,54 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Profile form
     const profileForm = document.getElementById('profileForm');
+
+    // ===== SCHOLARSHIPS: load active scholarships for students =====
+    (function initStudentScholarships() {
+        const grid = document.getElementById('scholarshipsGrid');
+        if (!grid) return;
+        try {
+            const nowTs = firebase.firestore.Timestamp.now();
+            firebase.firestore().collection('scholarships')
+                .where('status', '==', 'active')
+                .where('deadline', '>', nowTs)
+                .orderBy('deadline', 'asc')
+                .onSnapshot(snapshot => {
+                    if (!snapshot || snapshot.empty) {
+                        grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:40px;">No scholarships available right now. Please check back later.</div>';
+                        return;
+                    }
+                    let html = '';
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        const deadline = d.deadline && d.deadline.toDate ? d.deadline.toDate().toLocaleDateString() : '';
+                        const benefitsShort = (d.benefits || '').length > 120 ? (d.benefits || '').slice(0, 117) + '...' : (d.benefits || '');
+                        const image = d.imageUrl || 'https://via.placeholder.com/300x160?text=Scholarship';
+                        html += `
+                        <div class="sch-card-grid" style="background:#fff;border:1px solid #e1e5ee;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;">
+                            <div style="display:flex;gap:12px;align-items:center;">
+                                <img src="${escapeHtml(image)}" alt="${escapeHtml(d.title || '')}" style="width:120px;height:80px;object-fit:cover;border-radius:6px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:700;color:var(--primary);">${escapeHtml(d.university || '')}</div>
+                                    <div style="font-size:1.05em;margin-top:6px;">${escapeHtml(d.title || '')}</div>
+                                    <div style="color:var(--gray);font-size:0.95em;margin-top:6px;">${escapeHtml(d.degree || '')} • ${escapeHtml(d.field || '')}</div>
+                                </div>
+                            </div>
+                            <div style="color:var(--gray);font-size:0.95em;">${escapeHtml(benefitsShort)}</div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div style="color:#555;font-weight:600;">Deadline: ${escapeHtml(deadline)}</div>
+                                <a class="btn-primary" href="apply.html?scholarshipId=${doc.id}">Apply Now</a>
+                            </div>
+                        </div>`;
+                    });
+                    grid.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">' + html + '</div>';
+                }, err => {
+                    console.error('Scholarships snapshot error', err);
+                    grid.innerHTML = '<div style="color:var(--gray);text-align:center;padding:40px;">Failed to load scholarships.</div>';
+                });
+        } catch (err) {
+            console.error('Init scholarships failed', err);
+        }
+    })();
     if (profileForm) {
         profileForm.addEventListener('submit', handleProfileUpdate);
     }

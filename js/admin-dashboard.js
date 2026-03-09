@@ -743,6 +743,183 @@ function listenToAdminAnnouncements() {
         });
 }
 
+// ===== SCHOLARSHIP MANAGEMENT =====
+let scholarshipsUnsubscribe = null;
+
+function initScholarshipsAdmin() {
+    const form = document.getElementById('scholarshipForm');
+    const list = document.getElementById('scholarshipsList');
+    const submitBtn = document.getElementById('schSubmitBtn');
+    const cancelBtn = document.getElementById('schCancelBtn');
+    const msgEl = document.getElementById('schFormMsg');
+
+    if (!form || !list) return;
+
+    // Reset form handlers
+    form.onsubmit = async function (e) {
+        e.preventDefault();
+        if (msgEl) { msgEl.style.display = 'none'; }
+        const id = document.getElementById('schId')?.value || '';
+        const title = document.getElementById('schTitle')?.value.trim();
+        const university = document.getElementById('schUniversity')?.value.trim();
+        const degree = document.getElementById('schDegree')?.value;
+        const field = document.getElementById('schField')?.value.trim();
+        const type = document.getElementById('schType')?.value;
+        const benefits = document.getElementById('schBenefits')?.value.trim();
+        const deadlineVal = document.getElementById('schDeadline')?.value;
+        const requirements = document.getElementById('schRequirements')?.value.trim();
+        const imageUrl = document.getElementById('schImageUrl')?.value.trim();
+        const statusChecked = document.getElementById('schStatus')?.checked;
+
+        if (!title || !university || !degree || !field || !type || !benefits || !deadlineVal || !requirements) {
+            showToast('Please fill all required fields');
+            return;
+        }
+
+        // Set deadline to end of selected day
+        const deadlineDate = new Date(deadlineVal + 'T23:59:59');
+        const deadlineTs = firebase.firestore.Timestamp.fromDate(deadlineDate);
+
+        try {
+            const user = firebase.auth().currentUser;
+            if (!user) return showToast('Not authenticated');
+
+            const payload = {
+                title,
+                university,
+                degree,
+                field,
+                type,
+                benefits,
+                deadline: deadlineTs,
+                requirements,
+                imageUrl: imageUrl || null,
+                status: statusChecked ? 'active' : 'inactive'
+            };
+
+            if (id) {
+                // update
+                payload.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+                await firebase.firestore().collection('scholarships').doc(id).update(payload);
+                showToast('Scholarship updated');
+            } else {
+                payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                payload.createdBy = user.uid;
+                await firebase.firestore().collection('scholarships').add(payload);
+                showToast('Scholarship created');
+            }
+            clearScholarshipForm();
+        } catch (err) {
+            console.error('Scholarship save error', err);
+            showToast('Error saving scholarship: ' + (err.message || err));
+        }
+    };
+
+    if (cancelBtn) cancelBtn.onclick = function () { clearScholarshipForm(); };
+
+    // Real-time list
+    if (scholarshipsUnsubscribe) scholarshipsUnsubscribe();
+    scholarshipsUnsubscribe = firebase.firestore().collection('scholarships').orderBy('deadline', 'asc')
+        .onSnapshot(snapshot => {
+            if (!snapshot) return;
+            renderScholarshipsList(snapshot.docs);
+        }, err => {
+            console.error('Scholarships snapshot error', err);
+            list.innerHTML = '<p style="color:var(--gray);text-align:center;padding:20px;">Failed to load scholarships.</p>';
+        });
+
+    // Delegate actions
+    list.addEventListener('click', async function (e) {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const id = btn.getAttribute('data-id');
+        if (action === 'edit') {
+            const doc = await firebase.firestore().collection('scholarships').doc(id).get();
+            if (!doc.exists) return showToast('Scholarship not found');
+            populateScholarshipForm(id, doc.data());
+            // scroll to form
+            document.getElementById('scholarshipForm')?.scrollIntoView({ behavior: 'smooth' });
+        } else if (action === 'delete') {
+            if (!confirm('Delete this scholarship?')) return;
+            try {
+                await firebase.firestore().collection('scholarships').doc(id).delete();
+                showToast('Scholarship deleted');
+            } catch (err) {
+                console.error('Delete scholarship error', err);
+                showToast('Delete failed: ' + (err.message || err));
+            }
+        }
+    });
+}
+
+function renderScholarshipsList(docs) {
+    const list = document.getElementById('scholarshipsList');
+    const tpl = document.getElementById('schRowTemplate');
+    if (!list) return;
+    if (!docs || docs.length === 0) {
+        list.innerHTML = '<p style="color:var(--gray);text-align:center;padding:20px;">No scholarships found.</p>';
+        return;
+    }
+    let html = '';
+    docs.forEach(doc => {
+        const d = doc.data();
+        const deadline = d.deadline && d.deadline.toDate ? d.deadline.toDate().toLocaleDateString() : '';
+        let item = tpl.innerHTML.replace('{{title}}', escapeHtml(d.title || ''))
+            .replace('{{university}}', escapeHtml(d.university || ''))
+            .replace('{{degree}}', escapeHtml(d.degree || ''))
+            .replace('{{deadline}}', escapeHtml(deadline))
+            .replace('{{id}}', doc.id);
+        html += item;
+    });
+    list.innerHTML = html;
+}
+
+function populateScholarshipForm(id, data) {
+    document.getElementById('schId').value = id;
+    document.getElementById('schTitle').value = data.title || '';
+    document.getElementById('schUniversity').value = data.university || '';
+    document.getElementById('schDegree').value = data.degree || 'bachelor';
+    document.getElementById('schField').value = data.field || '';
+    document.getElementById('schType').value = data.type || 'full';
+    document.getElementById('schBenefits').value = data.benefits || '';
+    if (data.deadline && data.deadline.toDate) {
+        const d = data.deadline.toDate();
+        const iso = d.toISOString().slice(0, 10);
+        document.getElementById('schDeadline').value = iso;
+    }
+    document.getElementById('schRequirements').value = data.requirements || '';
+    document.getElementById('schImageUrl').value = data.imageUrl || '';
+    document.getElementById('schStatus').checked = (data.status || 'inactive') === 'active';
+    const submitBtn = document.getElementById('schSubmitBtn');
+    if (submitBtn) submitBtn.textContent = 'Update Scholarship';
+}
+
+function clearScholarshipForm() {
+    document.getElementById('schId').value = '';
+    document.getElementById('schTitle').value = '';
+    document.getElementById('schUniversity').value = '';
+    document.getElementById('schDegree').value = 'bachelor';
+    document.getElementById('schField').value = '';
+    document.getElementById('schType').value = 'full';
+    document.getElementById('schBenefits').value = '';
+    document.getElementById('schDeadline').value = '';
+    document.getElementById('schRequirements').value = '';
+    document.getElementById('schImageUrl').value = '';
+    document.getElementById('schStatus').checked = true;
+    const submitBtn = document.getElementById('schSubmitBtn');
+    if (submitBtn) submitBtn.textContent = 'Create Scholarship';
+}
+
+// Initialize when admin navigates to scholarships
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.nav-item[data-section="scholarships"]').forEach(item => {
+        item.addEventListener('click', function () {
+            initScholarshipsAdmin();
+        });
+    });
+});
+
 function renderAnnouncementsList() {
     const list = document.getElementById('announcementsList');
     if (!list) return;
@@ -1893,7 +2070,8 @@ function switchSection(section) {
         'pending-agents': 'Pending Approvals',
         contacts: 'Contact Messages',
         settings: 'Settings',
-        announcements: 'Announcements'
+        announcements: 'Announcements',
+        scholarships: 'Scholarship Management'
     };
     const title = titles[section] || 'Dashboard';
 
@@ -1929,6 +2107,11 @@ function switchSection(section) {
                 list.innerHTML = '<div class="empty-state">No announcements yet.</div>';
             }
         }, 500);
+    }
+
+    // Special: if scholarships section, initialize scholarship admin handlers
+    if (section === 'scholarships') {
+        try { initScholarshipsAdmin(); } catch (e) { console.error('Init scholarships failed', e); }
     }
 
     currentSection = section;
@@ -2401,15 +2584,15 @@ window.viewAssignedStudentsModal = function (agentId) {
         }
     })();
 
-// Close modal logic
-closeBtn.onclick = function () {
-    modalBg.remove();
-    unsubscribe();
-};
-modalBg.addEventListener('click', function (e) {
-    if (e.target === modalBg) {
+    // Close modal logic
+    closeBtn.onclick = function () {
         modalBg.remove();
         unsubscribe();
-    }
-});
+    };
+    modalBg.addEventListener('click', function (e) {
+        if (e.target === modalBg) {
+            modalBg.remove();
+            unsubscribe();
+        }
+    });
 };

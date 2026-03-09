@@ -57,6 +57,10 @@
                 <span>Contact Messages</span>
             </a>
 
+            <a href="#scholarships" class="nav-item" data-section="scholarships">
+                <i class="fas fa-university"></i>
+                <span>Scholarships</span>
+            </a>
             <a href="#settings" class="nav-item" data-section="settings">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
@@ -248,6 +252,114 @@
             </div>
         </section>
 
+        <!-- ===== SCHOLARSHIPS MANAGEMENT SECTION ===== -->
+        <section id="scholarships-section" class="content-section">
+            <div class="section-header">
+                <div class="section-header-left">
+                    <button class="mobile-sidebar-toggle" onclick="toggleSidebar()" title="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Scholarship Management</h1>
+                </div>
+                <div class="section-header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="sectionUserAvatar">A</div>
+                        <div class="user-dropdown">
+                            <div class="user-name" id="sectionUserName">Administrator</div>
+                            <a href="notifications.html"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Create / Edit Scholarship</h3>
+                <form id="scholarshipForm" style="max-width:900px;margin-top:12px;">
+                    <input type="hidden" id="schId">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="form-group">
+                            <label for="schTitle">Scholarship Title</label>
+                            <input id="schTitle" type="text" required maxlength="200">
+                        </div>
+                        <div class="form-group">
+                            <label for="schUniversity">University Name</label>
+                            <input id="schUniversity" type="text" required maxlength="200">
+                        </div>
+                        <div class="form-group">
+                            <label for="schDegree">Degree Level</label>
+                            <select id="schDegree" required>
+                                <option value="bachelor">Bachelor's</option>
+                                <option value="master">Master's</option>
+                                <option value="phd">PhD</option>
+                                <option value="diploma">Diploma</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="schField">Field of Study</label>
+                            <input id="schField" type="text" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="schType">Scholarship Type</label>
+                            <select id="schType" required>
+                                <option value="full">Full</option>
+                                <option value="partial">Partial</option>
+                                <option value="tuition">Tuition Waiver</option>
+                                <option value="government">Government</option>
+                                <option value="university">University</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="schBenefits">Benefits</label>
+                            <input id="schBenefits" type="text" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="schDeadline">Application Deadline</label>
+                            <input id="schDeadline" type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="schRequirements">Requirements</label>
+                            <input id="schRequirements" type="text" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="schImageUrl">Image URL (placeholder)</label>
+                            <input id="schImageUrl" type="text" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label for="schStatus">Active</label>
+                            <input id="schStatus" type="checkbox" checked>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;display:flex;gap:8px;">
+                        <button id="schSubmitBtn" type="submit" class="btn-primary">Create Scholarship</button>
+                        <button id="schCancelBtn" type="button" class="btn-secondary">Reset</button>
+                        <div id="schFormMsg" style="margin-left:8px;align-self:center;color:var(--gray);display:none;">
+                        </div>
+                    </div>
+                </form>
+
+                <hr style="margin:18px 0;">
+
+                <h3>Existing Scholarships</h3>
+                <div id="scholarshipsList" style="margin-top:12px;">
+                    <p style="color:var(--gray);text-align:center;padding:20px;">Loading scholarships...</p>
+                </div>
+
+                <template id="schRowTemplate">
+                    <div class="sch-card"
+                        style="border:1px solid #e1e5ee;padding:12px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div style="font-weight:600;">{{title}}</div>
+                            <div style="color:var(--gray);">{{university}} • {{degree}} • Deadline: {{deadline}}</div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn-small btn-outline" data-action="edit" data-id="{{id}}">Edit</button>
+                            <button class="btn-small btn-danger" data-action="delete" data-id="{{id}}">Delete</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
         <!-- ===== USER MANAGEMENT SECTION ===== -->
         <section id="users-section" class="content-section">
             <!-- Section Header -->
